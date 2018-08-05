@@ -88,14 +88,14 @@ const exit = err => {
       return !file.endsWith(".br") && !file.endsWith(".gz");
     });
 
-    const concurrency = os.cpus().length;
+    const concurrency = Math.min(files.length, os.cpus().length);
 
     if (args.verbose) {
       console.info(`Going to compress ${files.length} files using ${concurrency} cores`);
     }
 
     // split files into chunks for each CPU
-    const chunks = evenChunks(files, concurrency, evenChunks.ROUND_ROBIN).filter(chunk => chunk.length);
+    const chunks = evenChunks(files, concurrency, evenChunks.ROUND_ROBIN);
 
     // within a chunk, run one compression at a time
     const chunkActions = chunks.map(files => {
