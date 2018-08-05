@@ -16,8 +16,8 @@ if (!args._.length || args.help) {
   console.info(`usage: precompress [FILES,DIRS]...
 
   Options:
-    -v, --verbose    Show the currently processed files
-    -h, --help       Show this help
+    -v, --verbose    Print additional information
+    -h, --help       Show this text
 
   Examples:
     $ precompress -v build`);
@@ -88,14 +88,14 @@ const exit = err => {
       return !file.endsWith(".br") && !file.endsWith(".gz");
     });
 
-    const cores = os.cpus().length;
+    const concurrency = os.cpus().length;
 
     if (args.verbose) {
-      console.info(`Going to compress ${files.length} files using ${cores} cores`);
+      console.info(`Going to compress ${files.length} files using ${concurrency} cores`);
     }
 
     // split files into chunks for each CPU
-    const chunks = evenChunks(files, cores, evenChunks.ROUND_ROBIN).filter(chunk => chunk.length);
+    const chunks = evenChunks(files, concurrency, evenChunks.ROUND_ROBIN).filter(chunk => chunk.length);
 
     // within a chunk, run one compression at a time
     const chunkActions = chunks.map(files => {
@@ -104,7 +104,7 @@ const exit = err => {
     });
 
     // start compressing
-    await pAll(chunkActions, {concurrency: os.cpus().length});
+    await pAll(chunkActions, {concurrency});
   } catch (err) {
     exit(err);
   }
