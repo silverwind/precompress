@@ -11,7 +11,7 @@ npm i precompress
 ```
 
 ## Usage
-To create or update `.gz` and `.br` for all files in the `build` directory:
+To create or update `.gz` and `.br` files for all files in the `build` directory:
 ```
 npx precompress build
 ```
