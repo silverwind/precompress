@@ -3,7 +3,7 @@
 
 > Generate pre-compressed .gz and .br files for static web servers
 
-Outputs files to be used with web servers like nginx with the `gzip_static` and `brotli_static` directives. Files are compressed in parallel, using the available CPU cores efficiently. Compression is done using the brotli and zopfli algorithms to achieve the smallest possible files. Existing output files will always be overridden.
+Outputs files to be used with web servers like nginx with the `gzip_static` and `brotli_static` directives. Files are compressed in parallel, using the available CPU cores efficiently. Existing output files will always be overridden.
 
 ## Installation
 ```

@@ -25,7 +25,7 @@ if (!args._.length || args.help) {
 
 const util = require("util");
 const fs = require("fs-extra");
-const zopfli = util.promisify(require("node-zopfli-es").gzip);
+const gzip = util.promisify(require("zlib").gzip);
 const brotli = require("iltorb").compress;
 const evenChunks = require("even-chunks");
 const os = require("os");
@@ -58,7 +58,7 @@ const compress = async file => {
   }
 
   const data = await fs.readFile(file);
-  await fs.writeFile(file + ".gz", await zopfli(data));
+  await fs.writeFile(file + ".gz", await gzip(data));
   await fs.writeFile(file + ".br", await brotli(data));
 
   if (args.verbose) {

@@ -24,7 +24,6 @@
     "static",
     "nginx",
     "apache",
-    "zopfli",
     "gzip",
     "gz",
     "brotli",
@@ -35,7 +34,6 @@
     "fs-extra": "^7.0.0",
     "iltorb": "^2.4.0",
     "minimist": "^1.2.0",
-    "node-zopfli-es": "0.0.2",
     "p-all": "^1.0.0"
   },
   "devDependencies": {
