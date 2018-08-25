@@ -7,6 +7,8 @@ const args = require("minimist")(process.argv.slice(2), {
     "h", "help",
   ],
   alias: {
+    i: "include",
+    e: "exclude",
     v: "verbose",
     h: "help",
   },
@@ -16,8 +18,10 @@ if (!args._.length || args.help) {
   console.info(`usage: precompress [FILES,DIRS]...
 
   Options:
-    -v, --verbose    Print additional information
-    -h, --help       Show this text
+    -i, --include <ext,...>  Only include given file extensions
+    -e, --exclude <ext,...>  Exclude given file extensions
+    -v, --verbose            Print additional information
+    -h, --help               Show this text
 
   Examples:
     $ precompress -v build`);
@@ -87,6 +91,14 @@ const exit = err => {
     files = files.filter(file => {
       return !file.endsWith(".br") && !file.endsWith(".gz");
     });
+
+    if (args.include) {
+      files = files.filter(file => args.include.split(",").some(include => file.endsWith(include)));
+    }
+
+    if (args.exclude) {
+      files = files.filter(file => !args.exclude.split(",").some(exclude => file.endsWith(exclude)));
+    }
 
     const concurrency = Math.min(files.length, os.cpus().length);
 
