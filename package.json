@@ -37,8 +37,8 @@
     "p-all": "^1.0.0"
   },
   "devDependencies": {
-    "eslint": "^5.4.0",
-    "eslint-config-silverwind": "^2.0.7",
-    "updates": "^4.2.0"
+    "eslint": "^5.5.0",
+    "eslint-config-silverwind": "^2.0.9",
+    "updates": "^4.2.1"
   }
 }

@@ -8,7 +8,7 @@ publish:
 update:
 	npx updates -u
 	rm -rf node_modules
-	yarn
+	npm i
 
 npm-patch:
 	npm version patch
