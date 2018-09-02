@@ -75,49 +75,45 @@ const exit = err => {
   process.exit(err ? 1 : 0);
 };
 
-(async () => {
-  let files;
+async function main() {
+  // obtain file paths
+  let files = args._.map(path => {
+    return fs.statSync(path).isDirectory() ? walkSync(path) : path;
+  });
 
-  try {
-    // obtain file paths
-    files = args._.map(path => {
-      return fs.statSync(path).isDirectory() ? walkSync(path) : path;
-    });
+  // flatten arrays
+  files = [].concat(...files);
 
-    // flatten arrays
-    files = [].concat(...files);
+  // remove already compressed files
+  files = files.filter(file => {
+    return !file.endsWith(".br") && !file.endsWith(".gz");
+  });
 
-    // remove already compressed files
-    files = files.filter(file => {
-      return !file.endsWith(".br") && !file.endsWith(".gz");
-    });
-
-    if (args.include) {
-      files = files.filter(file => args.include.split(",").some(include => file.endsWith(include)));
-    }
-
-    if (args.exclude) {
-      files = files.filter(file => !args.exclude.split(",").some(exclude => file.endsWith(exclude)));
-    }
-
-    const concurrency = Math.min(files.length, os.cpus().length);
-
-    if (args.verbose) {
-      console.info(`Going to compress ${files.length} files using ${concurrency} cores`);
-    }
-
-    // split files into chunks for each CPU
-    const chunks = evenChunks(files, concurrency, evenChunks.ROUND_ROBIN);
-
-    // within a chunk, run one compression at a time
-    const chunkActions = chunks.map(files => {
-      const actions = files.map(file => () => compress(file));
-      return () => pAll(actions, {concurrency: 1});
-    });
-
-    // start compressing
-    await pAll(chunkActions, {concurrency});
-  } catch (err) {
-    exit(err);
+  if (args.include) {
+    files = files.filter(file => args.include.split(",").some(include => file.endsWith(include)));
   }
-})();
+
+  if (args.exclude) {
+    files = files.filter(file => !args.exclude.split(",").some(exclude => file.endsWith(exclude)));
+  }
+
+  const concurrency = Math.min(files.length, os.cpus().length);
+
+  if (args.verbose) {
+    console.info(`Going to compress ${files.length} files using ${concurrency} cpu cores`);
+  }
+
+  // split files into chunks for each CPU
+  const chunks = evenChunks(files, concurrency, evenChunks.ROUND_ROBIN);
+
+  // within a chunk, run one compression at a time
+  const chunkActions = chunks.map(files => {
+    const actions = files.map(file => () => compress(file));
+    return () => pAll(actions, {concurrency: 1});
+  });
+
+  // start compressing
+  await pAll(chunkActions, {concurrency});
+}
+
+main().then(exit).catch(exit);

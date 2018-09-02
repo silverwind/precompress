@@ -11,9 +11,17 @@ npm i precompress
 ```
 
 ## Usage
-To create or update `.gz` and `.br` files for all files in the `build` directory:
 ```
-npx precompress build
+usage: precompress [FILES,DIRS]...
+
+  Options:
+    -i, --include <ext,...>  Only include given file extensions
+    -e, --exclude <ext,...>  Exclude given file extensions
+    -v, --verbose            Print additional information
+    -h, --help               Show this text
+
+  Examples:
+    $ precompress -v build
 ```
 
 © [silverwind](https://github.com/silverwind), distributed under BSD licence
