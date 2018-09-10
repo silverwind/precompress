@@ -34,20 +34,7 @@ const brotli = require("iltorb").compress;
 const evenChunks = require("even-chunks");
 const os = require("os");
 const pAll = require("p-all");
-
-const walkSync = function(dir) {
-  let files = [];
-  const entries = fs.readdirSync(dir);
-  for (const entry of entries) {
-    const path = dir + "/" + entry;
-    if (fs.statSync(path).isDirectory()) {
-      files = files.concat(walkSync(path));
-    } else {
-      files.push(path);
-    }
-  }
-  return files;
-};
+const rrdir = require("rrdir");
 
 const time = () => {
   const t = process.hrtime();
@@ -61,9 +48,13 @@ const compress = async file => {
     start = time();
   }
 
-  const data = await fs.readFile(file);
-  await fs.writeFile(file + ".gz", await gzip(data));
-  await fs.writeFile(file + ".br", await brotli(data));
+  try {
+    const data = await fs.readFile(file);
+    await fs.writeFile(file + ".gz", await gzip(data));
+    await fs.writeFile(file + ".br", await brotli(data));
+  } catch (err) {
+    console.info(`Error on ${file}: ${err.code}`);
+  }
 
   if (args.verbose) {
     console.info(`Compressed ${file} in ${time() - start}ms`);
@@ -78,7 +69,11 @@ const exit = err => {
 async function main() {
   // obtain file paths
   let files = args._.map(path => {
-    return fs.statSync(path).isDirectory() ? walkSync(path) : path;
+    if (fs.statSync(path).isDirectory()) {
+      return rrdir.sync(path).filter(entry => entry.directory === false).map(entry => entry.path);
+    } else {
+      return path;
+    }
   });
 
   // flatten arrays
