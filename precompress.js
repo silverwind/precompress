@@ -30,11 +30,15 @@ if (!args._.length || args.help) {
 const util = require("util");
 const fs = require("fs-extra");
 const gzip = util.promisify(require("zlib").gzip);
-const brotli = require("iltorb").compress;
 const evenChunks = require("even-chunks");
 const os = require("os");
 const pAll = require("p-all");
 const rrdir = require("rrdir");
+
+let brotli;
+try {
+  brotli = require("iltorb").compress;
+} catch (err) {}
 
 const time = () => {
   const t = process.hrtime();
@@ -51,7 +55,7 @@ const compress = async file => {
   try {
     const data = await fs.readFile(file);
     await fs.writeFile(file + ".gz", await gzip(data));
-    await fs.writeFile(file + ".br", await brotli(data));
+    if (brotli) await fs.writeFile(file + ".br", await brotli(data));
   } catch (err) {
     console.info(`Error on ${file}: ${err.code}`);
   }
@@ -96,6 +100,10 @@ async function main() {
 
   if (args.verbose) {
     console.info(`Going to compress ${files.length} files using ${concurrency} cpu cores`);
+  }
+
+  if (!brotli) {
+    console.info(`Warning: iltorb module is unavailable, will not create .br files`);
   }
 
   // split files into chunks for each CPU
