@@ -7,12 +7,14 @@ const args = require("minimist")(process.argv.slice(2), {
     "h", "help",
   ],
   string: [
+    "t", "types",
     "_"
   ],
   number: [
     "c", "concurrency",
   ],
   alias: {
+    t: "types",
     c: "concurrency",
     i: "include",
     e: "exclude",
@@ -30,7 +32,8 @@ if (!args._.length || args.help) {
   console.info(`usage: precompress [FILES,DIRS]...
 
   Options:
-    -c, --concurrency <num>  Number of concurrent operations
+    -t, --types <type,...>   Types of files to generate. Default: gz,br
+    -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
     -v, --verbose            Print additional information
@@ -43,16 +46,24 @@ if (!args._.length || args.help) {
 
 const util = require("util");
 const fs = require("fs-extra");
-const gzip = util.promisify(require("zlib").gzip);
 const evenChunks = require("even-chunks");
 const os = require("os");
 const pAll = require("p-all");
 const rrdir = require("rrdir");
 
-let brotli;
-try {
-  brotli = require("iltorb").compress;
-} catch (err) {}
+const types = args.types ? args.types.split(",") : ["gz", "br"];
+
+let brotli, gzip;
+
+if (types.includes("gz")) {
+  gzip = util.promisify(require("zlib").gzip);
+}
+
+if (types.includes("br")) {
+  try {
+    brotli = require("iltorb").compress;
+  } catch (err) {}
+}
 
 const time = () => {
   const t = process.hrtime();
@@ -68,7 +79,7 @@ const compress = async file => {
 
   try {
     const data = await fs.readFile(file);
-    await fs.writeFile(file + ".gz", await gzip(data));
+    if (gzip) await fs.writeFile(file + ".gz", await gzip(data));
     if (brotli) await fs.writeFile(file + ".br", await brotli(data));
   } catch (err) {
     console.info(`Error on ${file}: ${err.code}`);
@@ -116,7 +127,7 @@ async function main() {
     console.info(`Going to compress ${files.length} files using ${concurrency} CPU cores`);
   }
 
-  if (!brotli) {
+  if (types.includes(brotli) && !brotli) {
     console.info(`Warning: iltorb module is unavailable, will not create .br files`);
   }
 

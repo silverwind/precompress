@@ -15,7 +15,8 @@ npm i precompress
 usage: precompress [FILES,DIRS]...
 
   Options:
-    -c, --concurrency <num>  Number of concurrent operations
+    -t, --types <type,...>   Types of files to generate. Default: gz,br
+    -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
     -v, --verbose            Print additional information
