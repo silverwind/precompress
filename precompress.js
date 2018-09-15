@@ -6,7 +6,14 @@ const args = require("minimist")(process.argv.slice(2), {
     "v", "verbose",
     "h", "help",
   ],
+  string: [
+    "_"
+  ],
+  number: [
+    "c", "concurrency",
+  ],
   alias: {
+    c: "concurrency",
     i: "include",
     e: "exclude",
     v: "verbose",
@@ -14,10 +21,16 @@ const args = require("minimist")(process.argv.slice(2), {
   },
 });
 
+const exit = err => {
+  if (err) console.error(err.message || err);
+  process.exit(err ? 1 : 0);
+};
+
 if (!args._.length || args.help) {
   console.info(`usage: precompress [FILES,DIRS]...
 
   Options:
+    -c, --concurrency <num>  Number of concurrent operations
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
     -v, --verbose            Print additional information
@@ -25,6 +38,7 @@ if (!args._.length || args.help) {
 
   Examples:
     $ precompress -v build`);
+  exit();
 }
 
 const util = require("util");
@@ -65,11 +79,6 @@ const compress = async file => {
   }
 };
 
-const exit = err => {
-  if (err) console.error(err.message || err);
-  process.exit(err ? 1 : 0);
-};
-
 async function main() {
   // obtain file paths
   let files = args._.map(path => {
@@ -96,10 +105,15 @@ async function main() {
     files = files.filter(file => !args.exclude.split(",").some(exclude => file.endsWith(exclude)));
   }
 
-  const concurrency = Math.min(files.length, os.cpus().length);
+  let concurrency;
+  if (args.concurrency && typeof args.concurrency === "number" && args.concurrency > 0) {
+    concurrency = args.concurrency;
+  } else {
+    concurrency = Math.min(files.length, os.cpus().length);
+  }
 
   if (args.verbose) {
-    console.info(`Going to compress ${files.length} files using ${concurrency} cpu cores`);
+    console.info(`Going to compress ${files.length} files using ${concurrency} CPU cores`);
   }
 
   if (!brotli) {
