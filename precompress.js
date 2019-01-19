@@ -50,19 +50,30 @@ const evenChunks = require("even-chunks");
 const os = require("os");
 const pAll = require("p-all");
 const rrdir = require("rrdir");
+const zlib = require("zlib");
 
 const types = args.types ? args.types.split(",") : ["gz", "br"];
 
 let brotli, gzip;
 
+const opts = {
+  gzip: {level: zlib.constants.Z_BEST_COMPRESSION},
+  brotli: {[zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY},
+  iltorb: {quality: 11},
+};
+
 if (types.includes("gz")) {
-  gzip = util.promisify(require("zlib").gzip);
+  gzip = (data) => util.promisify(zlib.gzip)(data, opts.gzip);
 }
 
 if (types.includes("br")) {
-  try {
-    brotli = require("iltorb").compress;
-  } catch (err) {}
+  if (zlib.brotliCompress) {
+    brotli = (data) => util.promisify(zlib.brotliCompress)(data, opts.brotli);
+  } else {
+    try {
+      brotli = (data) => require("iltorb").compress(data, opts.iltorb);
+    } catch (err) {}
+  }
 }
 
 const time = () => {

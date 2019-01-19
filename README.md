@@ -5,6 +5,8 @@
 
 Outputs files to be used with web servers like nginx with the `gzip_static` and `brotli_static` directives. Files are compressed in parallel, using the available CPU cores efficiently. Existing output files will always be overridden.
 
+For brotli it uses the version which Node.js includes since 11.7.0, on older versions it will use the `iltorb` module.
+
 ## Installation
 ```
 npm i precompress
