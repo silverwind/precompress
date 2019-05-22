@@ -14,7 +14,7 @@ npm i precompress
 
 ## Usage
 ```
-usage: precompress [FILES,DIRS]...
+usage: precompress [options] <files,dirs,...>
 
   Options:
     -t, --types <type,...>   Types of files to generate. Default: gz,br

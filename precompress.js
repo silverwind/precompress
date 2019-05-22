@@ -29,7 +29,7 @@ const exit = err => {
 };
 
 if (!args._.length || args.help) {
-  console.info(`usage: precompress [FILES,DIRS]...
+  console.info(`usage: precompress [options] <files,dirs,...>
 
   Options:
     -t, --types <type,...>   Types of files to generate. Default: gz,br
