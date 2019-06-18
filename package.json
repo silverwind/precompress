@@ -12,7 +12,7 @@
     "test": "make test"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "files": [
     "precompress.js"
@@ -33,21 +33,16 @@
   ],
   "dependencies": {
     "even-chunks": "1.1.0",
-    "fs-extra": "8.0.1",
     "minimist": "1.2.0",
     "p-all": "2.1.0",
     "rrdir": "3.1.1"
   },
-  "optionalDependencies": {
-    "iltorb": "2.4.3"
-  },
   "devDependencies": {
     "eslint": "5.16.0",
-    "eslint-config-silverwind": "3.0.1",
+    "eslint-config-silverwind": "3.0.3",
     "execa": "1.0.0",
     "rimraf": "2.6.3",
-    "tempy": "0.3.0",
-    "updates": "8.0.3",
-    "ver": "4.3.0"
+    "updates": "8.1.0",
+    "ver": "5.0.1"
   }
 }

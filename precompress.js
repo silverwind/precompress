@@ -45,7 +45,7 @@ if (!args._.length || args.help) {
 }
 
 const util = require("util");
-const fs = require("fs-extra");
+const {stat, readFile, writeFile} = require("fs").promises;
 const evenChunks = require("even-chunks");
 const os = require("os");
 const pAll = require("p-all");
@@ -59,7 +59,6 @@ let brotli, gzip;
 const opts = {
   gzip: {level: zlib.constants.Z_BEST_COMPRESSION},
   brotli: {[zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY},
-  iltorb: {quality: 11},
 };
 
 if (types.includes("gz")) {
@@ -67,13 +66,7 @@ if (types.includes("gz")) {
 }
 
 if (types.includes("br")) {
-  if (zlib.brotliCompress) {
-    brotli = (data) => util.promisify(zlib.brotliCompress)(data, opts.brotli);
-  } else {
-    try {
-      brotli = (data) => require("iltorb").compress(data, opts.iltorb);
-    } catch (err) {}
-  }
+  brotli = (data) => util.promisify(zlib.brotliCompress)(data, opts.brotli);
 }
 
 const time = () => {
@@ -89,9 +82,9 @@ const compress = async file => {
   }
 
   try {
-    const data = await fs.readFile(file);
-    if (gzip) await fs.writeFile(file + ".gz", await gzip(data));
-    if (brotli) await fs.writeFile(file + ".br", await brotli(data));
+    const data = await readFile(file);
+    if (gzip) await writeFile(file + ".gz", await gzip(data));
+    if (brotli) await writeFile(file + ".br", await brotli(data));
   } catch (err) {
     console.info(`Error on ${file}: ${err.code}`);
   }
@@ -103,16 +96,19 @@ const compress = async file => {
 
 async function main() {
   // obtain file paths
-  let files = args._.map(path => {
-    if (fs.statSync(path).isDirectory()) {
-      return rrdir.sync(path).filter(entry => entry.directory === false).map(entry => entry.path);
+  let files = [];
+  for (const file of args._) {
+    const stats = await stat(file);
+    if (stats.isDirectory()) {
+      for await (const entry of rrdir.stream(file)) {
+        if (!entry.directory) {
+          files.push(entry.path);
+        }
+      }
     } else {
-      return path;
+      files.push(file);
     }
-  });
-
-  // flatten arrays
-  files = [].concat(...files);
+  }
 
   // remove already compressed files
   files = files.filter(file => {
@@ -136,10 +132,6 @@ async function main() {
 
   if (args.verbose) {
     console.info(`Going to compress ${files.length} files using ${concurrency} CPU cores`);
-  }
-
-  if (types.includes(brotli) && !brotli) {
-    console.info(`Warning: iltorb module is unavailable, will not create .br files`);
   }
 
   // split files into chunks for each CPU
