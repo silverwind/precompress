@@ -44,8 +44,10 @@ if (!args._.length || args.help) {
   exit();
 }
 
-const util = require("util");
-const {stat, readFile, writeFile} = require("fs").promises;
+const {promisify} = require("util");
+const stat = promisify(require("fs").stat);
+const readFile = promisify(require("fs").readFile);
+const writeFile = promisify(require("fs").writeFile);
 const evenChunks = require("even-chunks");
 const os = require("os");
 const pAll = require("p-all");
@@ -59,14 +61,21 @@ let brotli, gzip;
 const opts = {
   gzip: {level: zlib.constants.Z_BEST_COMPRESSION},
   brotli: {[zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY},
+  iltorb: {quality: 11},
 };
 
 if (types.includes("gz")) {
-  gzip = (data) => util.promisify(zlib.gzip)(data, opts.gzip);
+  gzip = (data) => promisify(zlib.gzip)(data, opts.gzip);
 }
 
 if (types.includes("br")) {
-  brotli = (data) => util.promisify(zlib.brotliCompress)(data, opts.brotli);
+  if (zlib.brotliCompress) {
+    brotli = (data) => promisify(zlib.brotliCompress)(data, opts.brotli);
+  } else {
+    try {
+      brotli = (data) => require("iltorb").compress(data, opts.iltorb);
+    } catch (err) {}
+  }
 }
 
 const time = () => {
@@ -132,6 +141,10 @@ async function main() {
 
   if (args.verbose) {
     console.info(`Going to compress ${files.length} files using ${concurrency} CPU cores`);
+  }
+
+  if (types.includes(brotli) && !brotli) {
+    console.info(`Warning: iltorb module is unavailable, will not create .br files`);
   }
 
   // split files into chunks for each CPU
