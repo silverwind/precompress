@@ -9,7 +9,7 @@
     "precompress": "precompress.js"
   },
   "scripts": {
-    "test": "make test"
+    "test": "npx eslint *.js && node test.js"
   },
   "engines": {
     "node": ">=12"
