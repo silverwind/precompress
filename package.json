@@ -41,11 +41,11 @@
     "iltorb": "2.4.3"
   },
   "devDependencies": {
-    "eslint": "5.16.0",
-    "eslint-config-silverwind": "3.0.3",
-    "execa": "1.0.0",
+    "eslint": "6.0.1",
+    "eslint-config-silverwind": "4.0.2",
+    "execa": "2.0.3",
     "rimraf": "2.6.3",
-    "updates": "8.1.0",
-    "ver": "5.0.1"
+    "updates": "8.4.1",
+    "ver": "5.1.2"
   }
 }
