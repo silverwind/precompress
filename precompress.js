@@ -3,7 +3,6 @@
 
 const args = require("minimist")(process.argv.slice(2), {
   boolean: [
-    "v", "verbose",
     "h", "help",
   ],
   string: [
@@ -18,7 +17,6 @@ const args = require("minimist")(process.argv.slice(2), {
     c: "concurrency",
     i: "include",
     e: "exclude",
-    v: "verbose",
     h: "help",
   },
 });
@@ -36,11 +34,10 @@ if (!args._.length || args.help) {
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
-    -v, --verbose            Print additional information
     -h, --help               Show this text
 
   Examples:
-    $ precompress -v build`);
+    $ precompress build`);
   exit();
 }
 
@@ -84,11 +81,7 @@ const time = () => {
 };
 
 const compress = async file => {
-  let start;
-
-  if (args.verbose) {
-    start = time();
-  }
+  const start = time();
 
   try {
     const data = await readFile(file);
@@ -98,17 +91,11 @@ const compress = async file => {
     console.info(`❌ Error on ${file}: ${err.code}`);
   }
 
-  if (args.verbose) {
-    console.info(`📦 Compressed ${file} in ${time() - start}ms`);
-  }
+  console.info(`📦 Compressed ${file} in ${time() - start}ms`);
 };
 
 async function main() {
-  let start;
-
-  if (args.verbose) {
-    start = time();
-  }
+  const start = time();
 
   // obtain file paths
   let files = [];
@@ -145,9 +132,7 @@ async function main() {
     concurrency = Math.min(files.length, os.cpus().length);
   }
 
-  if (args.verbose) {
-    console.info(`⚡️ Going to compress ${files.length} files using ${concurrency} CPU cores`);
-  }
+  console.info(`⚡️ Going to compress ${files.length} files using ${concurrency} CPU cores`);
 
   if (types.includes(brotli) && !brotli) {
     console.info(`😵 Warning: iltorb module is unavailable, will not create .br files`);
@@ -165,9 +150,7 @@ async function main() {
   // start compressing
   await pAll(chunkActions, {concurrency});
 
-  if (args.verbose) {
-    console.info(`✨ Done in ${time() - start}ms`);
-  }
+  console.info(`✨ Done in ${time() - start}ms`);
 }
 
 main().then(exit).catch(exit);

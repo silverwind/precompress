@@ -23,11 +23,10 @@ usage: precompress [options] <files,dirs,...>
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
-    -v, --verbose            Print additional information
     -h, --help               Show this text
 
   Examples:
-    $ precompress -v build
+    $ precompress build
 ```
 
 © [silverwind](https://github.com/silverwind), distributed under BSD licence
