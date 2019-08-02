@@ -5,6 +5,10 @@
 
 Compresses files for use with web servers like nginx with the `gzip_static` and `brotli_static` directives. Files are compressed in parallel, using the available CPU cores efficiently. Existing output files will always be overridden.
 
+<p align="center">
+  <img src="https://i.imgur.com/Zd4S8VO.png"/>
+</p>
+
 ## Installation
 ```
 npm i precompress
