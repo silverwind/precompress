@@ -150,7 +150,7 @@ async function main() {
   }
 
   if (types.includes(brotli) && !brotli) {
-    console.info(`⚠️ Warning: iltorb module is unavailable, will not create .br files`);
+    console.info(`😵 Warning: iltorb module is unavailable, will not create .br files`);
   }
 
   // split files into chunks for each CPU
