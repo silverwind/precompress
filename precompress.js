@@ -92,10 +92,10 @@ const compress = async file => {
     if (gzip) await writeFile(file + ".gz", await gzip(data));
     if (brotli) await writeFile(file + ".br", await brotli(data));
   } catch (err) {
-    console.info(`❌ Error on ${file}: ${err.code}`);
+    console.info(`Error on ${file}: ${err.code}`);
   }
 
-  console.info(`📦 Compressed ${file} in ${time() - start}ms`);
+  console.info(`Compressed ${file} in ${time() - start}ms`);
 };
 
 async function main() {
@@ -136,10 +136,10 @@ async function main() {
     concurrency = Math.min(files.length, os.cpus().length);
   }
 
-  console.info(`⚡️ Going to compress ${files.length} files using ${concurrency} CPU cores`);
+  console.info(`Going to compress ${files.length} files using ${concurrency} CPU cores`);
 
   if (types.includes(brotli) && !brotli) {
-    console.info(`😵 Warning: iltorb module is unavailable, will not create .br files`);
+    console.info(`Warning: iltorb module is unavailable, will not create .br files`);
   }
 
   // split files into chunks for each CPU
@@ -154,7 +154,7 @@ async function main() {
   // start compressing
   await pAll(chunkActions, {concurrency});
 
-  console.info(`✨ Done in ${time() - start}ms`);
+  console.info(`Done in ${time() - start}ms`);
 }
 
 main().then(exit).catch(exit);
