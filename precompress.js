@@ -26,6 +26,10 @@ const exit = err => {
   process.exit(err ? 1 : 0);
 };
 
+if (args.v) {
+  args._.push(args.v);
+}
+
 if (!args._.length || args.help) {
   console.info(`usage: precompress [options] <files,dirs,...>
 
