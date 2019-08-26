@@ -5,6 +5,7 @@ const args = require("minimist")(process.argv.slice(2), {
   boolean: [
     "h", "help",
     "v", "version",
+    "s", "silent",
   ],
   string: [
     "t", "types",
@@ -20,13 +21,14 @@ const args = require("minimist")(process.argv.slice(2), {
     e: "exclude",
     h: "help",
     v: "version",
+    s: "silent",
   },
 });
 
-const exit = err => {
+function exit(err) {
   if (err) console.error(err.stack || err.message || err);
   process.exit(err ? 1 : 0);
-};
+}
 
 if (args.version) {
   console.info(require(require("path").join(__dirname, "package.json")).version);
@@ -41,6 +43,7 @@ if (!args._.length || args.help) {
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
+    -s, --silent             Do not print compression times
     -h, --help               Show this text
     -v, --version            Show the version
 
@@ -82,13 +85,16 @@ if (types.includes("br")) {
   }
 }
 
-const time = () => {
+function time() {
   const t = process.hrtime();
   return Math.round((t[0] * 1e9 + t[1]) / 1e6);
-};
+}
 
-const compress = async file => {
-  const start = time();
+async function compress(file) {
+  let start;
+  if (!args.silent) {
+    start = time();
+  }
 
   try {
     const data = await readFile(file);
@@ -98,11 +104,16 @@ const compress = async file => {
     console.info(`Error on ${file}: ${err.code}`);
   }
 
-  console.info(`Compressed ${file} in ${time() - start}ms`);
-};
+  if (!args.silent) {
+    console.info(`Compressed ${file} in ${time() - start}ms`);
+  }
+}
 
 async function main() {
-  const start = time();
+  let start;
+  if (!args.silent) {
+    start = time();
+  }
 
   // obtain file paths
   let files = [];
@@ -144,7 +155,10 @@ async function main() {
   }
 
   await pMap(files, compress, {concurrency});
-  console.info(`Done in ${time() - start}ms`);
+
+  if (!args.silent) {
+    console.info(`Done in ${time() - start}ms`);
+  }
 }
 
 main().then(exit).catch(exit);
