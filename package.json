@@ -35,17 +35,17 @@
     "even-chunks": "1.1.0",
     "minimist": "1.2.0",
     "p-all": "2.1.0",
-    "rrdir": "3.1.1"
+    "rrdir": "3.2.0"
   },
   "optionalDependencies": {
     "iltorb": "2.4.3"
   },
   "devDependencies": {
-    "eslint": "6.1.0",
-    "eslint-config-silverwind": "4.0.2",
-    "execa": "2.0.3",
-    "rimraf": "2.6.3",
-    "updates": "8.5.1",
-    "ver": "5.1.2"
+    "eslint": "6.2.2",
+    "eslint-config-silverwind": "4.1.0",
+    "execa": "2.0.4",
+    "rimraf": "3.0.0",
+    "updates": "8.5.3",
+    "ver": "5.1.4"
   }
 }
