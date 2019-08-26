@@ -1,6 +1,6 @@
 {
   "name": "precompress",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "description": "Generate pre-compressed .gz and .br files for static web servers",
   "author": "silverwind <me@silverwind.io>",
   "repository": "silverwind/precompress",
