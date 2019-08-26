@@ -24,7 +24,7 @@ const args = require("minimist")(process.argv.slice(2), {
 });
 
 const exit = err => {
-  if (err) console.error(err.message || err);
+  if (err) console.error(err.stack || err.message || err);
   process.exit(err ? 1 : 0);
 };
 
@@ -53,9 +53,8 @@ const {promisify} = require("util");
 const stat = promisify(require("fs").stat);
 const readFile = promisify(require("fs").readFile);
 const writeFile = promisify(require("fs").writeFile);
-const evenChunks = require("even-chunks");
 const os = require("os");
-const pAll = require("p-all");
+const pMap = require("p-map");
 const rrdir = require("rrdir");
 const zlib = require("zlib");
 
@@ -140,24 +139,11 @@ async function main() {
     concurrency = Math.min(files.length, os.cpus().length);
   }
 
-  console.info(`Going to compress ${files.length} files using ${concurrency} CPU cores`);
-
   if (types.includes(brotli) && !brotli) {
     console.info(`Warning: iltorb module is unavailable, will not create .br files`);
   }
 
-  // split files into chunks for each CPU
-  const chunks = evenChunks(files, concurrency, evenChunks.ROUND_ROBIN);
-
-  // within a chunk, run one compression at a time
-  const chunkActions = chunks.map(files => {
-    const actions = files.map(file => () => compress(file));
-    return () => pAll(actions, {concurrency: 1});
-  });
-
-  // start compressing
-  await pAll(chunkActions, {concurrency});
-
+  await pMap(files, compress, {concurrency});
   console.info(`Done in ${time() - start}ms`);
 }
 
