@@ -20,6 +20,7 @@ usage: precompress [options] <files,dirs,...>
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
     -h, --help               Show this text
+    -v, --version            Show the version
 
   Examples:
     $ precompress build
