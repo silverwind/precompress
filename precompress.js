@@ -4,6 +4,7 @@
 const args = require("minimist")(process.argv.slice(2), {
   boolean: [
     "h", "help",
+    "v", "version",
   ],
   string: [
     "t", "types",
@@ -18,6 +19,7 @@ const args = require("minimist")(process.argv.slice(2), {
     i: "include",
     e: "exclude",
     h: "help",
+    v: "version",
   },
 });
 
@@ -26,8 +28,9 @@ const exit = err => {
   process.exit(err ? 1 : 0);
 };
 
-if (args.v) {
-  args._.push(args.v);
+if (args.version) {
+  console.info(require(require("path").join(__dirname, "package.json")).version);
+  process.exit(0);
 }
 
 if (!args._.length || args.help) {
@@ -39,6 +42,7 @@ if (!args._.length || args.help) {
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
     -h, --help               Show this text
+    -v, --version            Show the version
 
   Examples:
     $ precompress build`);
