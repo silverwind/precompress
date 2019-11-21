@@ -37,14 +37,14 @@
     "rrdir": "3.2.0"
   },
   "optionalDependencies": {
-    "iltorb": "2.4.3"
+    "iltorb": "2.4.4"
   },
   "devDependencies": {
-    "eslint": "6.2.2",
-    "eslint-config-silverwind": "4.1.0",
-    "execa": "2.0.4",
+    "eslint": "6.6.0",
+    "eslint-config-silverwind": "5.0.0",
+    "execa": "3.3.0",
     "rimraf": "3.0.0",
-    "updates": "8.5.3",
-    "ver": "5.1.4"
+    "updates": "9.1.0",
+    "ver": "6.0.2"
   }
 }
