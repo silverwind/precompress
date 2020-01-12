@@ -4,9 +4,7 @@ const assert = require("assert");
 const execa = require("execa");
 const {join} = require("path");
 const {promisify} = require("util");
-const mkdir = promisify(require("fs").mkdir);
-const writeFile = promisify(require("fs").writeFile);
-const readdir = promisify(require("fs").readdir);
+const {mkdir, writeFile, readdir} = require("fs").promises;
 const rimraf = promisify(require("rimraf"));
 
 const script = join(__dirname, "precompress.js");
