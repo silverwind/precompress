@@ -98,8 +98,8 @@ async function compress(file) {
 
   try {
     const data = await readFile(file);
-    if (gzip) await writeFile(file + ".gz", await gzip(data));
-    if (brotli) await writeFile(file + ".br", await brotli(data));
+    if (gzip) await writeFile(`${file}.gz`, await gzip(data));
+    if (brotli) await writeFile(`${file}.br`, await brotli(data));
   } catch (err) {
     console.info(`Error on ${file}: ${err.code}`);
   }
