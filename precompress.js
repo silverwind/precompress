@@ -53,10 +53,8 @@ if (!args._.length || args.help) {
 }
 
 const {promisify} = require("util");
-const stat = promisify(require("fs").stat);
-const readFile = promisify(require("fs").readFile);
-const writeFile = promisify(require("fs").writeFile);
-const os = require("os");
+const {stat, readFile, writeFile} = require("fs").promises;
+const {cpus} = require("os");
 const pMap = require("p-map");
 const rrdir = require("rrdir");
 const zlib = require("zlib");
@@ -147,7 +145,7 @@ async function main() {
   if (args.concurrency && typeof args.concurrency === "number" && args.concurrency > 0) {
     concurrency = args.concurrency;
   } else {
-    concurrency = Math.min(files.length, os.cpus().length);
+    concurrency = Math.min(files.length, cpus().length);
   }
 
   if (types.includes(brotli) && !brotli) {
