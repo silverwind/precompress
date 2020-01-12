@@ -17,20 +17,6 @@
   "files": [
     "precompress.js"
   ],
-  "keywords": [
-    "precompress",
-    "pre-compress",
-    "compress",
-    "compression",
-    "static",
-    "assets",
-    "nginx",
-    "apache",
-    "gzip",
-    "gz",
-    "brotli",
-    "br"
-  ],
   "dependencies": {
     "minimist": "1.2.0",
     "p-map": "3.0.0",
@@ -46,5 +32,19 @@
     "rimraf": "3.0.0",
     "updates": "9.3.3",
     "versions": "7.0.5"
-  }
+  },
+  "keywords": [
+    "precompress",
+    "pre-compress",
+    "compress",
+    "compression",
+    "static",
+    "assets",
+    "nginx",
+    "apache",
+    "gzip",
+    "gz",
+    "brotli",
+    "br"
+  ]
 }
