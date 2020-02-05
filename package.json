@@ -24,9 +24,9 @@
   },
   "devDependencies": {
     "eslint": "6.8.0",
-    "eslint-config-silverwind": "5.1.2",
+    "eslint-config-silverwind": "6.0.2",
     "execa": "4.0.0",
-    "rimraf": "3.0.0",
+    "rimraf": "3.0.1",
     "updates": "9.3.3",
     "versions": "7.0.5"
   },
