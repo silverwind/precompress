@@ -12,7 +12,7 @@
     "test": "npx eslint *.js && node test.js"
   },
   "engines": {
-    "node": ">=10.10"
+    "node": ">=10.16.0 || >=11.7.0"
   },
   "files": [
     "precompress.js"
@@ -21,9 +21,6 @@
     "minimist": "1.2.0",
     "p-map": "3.0.0",
     "rrdir": "4.0.0"
-  },
-  "optionalDependencies": {
-    "iltorb": "2.4.4"
   },
   "devDependencies": {
     "eslint": "6.8.0",

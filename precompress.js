@@ -66,7 +66,6 @@ let brotli, gzip;
 const opts = {
   gzip: {level: zlib.constants.Z_BEST_COMPRESSION},
   brotli: {[zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY},
-  iltorb: {quality: 11},
 };
 
 if (types.includes("gz")) {
@@ -74,13 +73,7 @@ if (types.includes("gz")) {
 }
 
 if (types.includes("br")) {
-  if (zlib.brotliCompress) {
-    brotli = (data) => promisify(zlib.brotliCompress)(data, opts.brotli);
-  } else {
-    try {
-      brotli = (data) => require("iltorb").compress(data, opts.iltorb);
-    } catch (err) {}
-  }
+  brotli = (data) => promisify(zlib.brotliCompress)(data, opts.brotli);
 }
 
 function time() {
@@ -146,10 +139,6 @@ async function main() {
     concurrency = args.concurrency;
   } else {
     concurrency = Math.min(files.length, cpus().length);
-  }
-
-  if (types.includes(brotli) && !brotli) {
-    console.info(`Warning: iltorb module is unavailable, will not create .br files`);
   }
 
   await pMap(files, compress, {concurrency});
