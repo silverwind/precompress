@@ -5,9 +5,7 @@
   "author": "silverwind <me@silverwind.io>",
   "repository": "silverwind/precompress",
   "license": "BSD-2-Clause",
-  "bin": {
-    "precompress": "precompress.js"
-  },
+  "bin": "./precompress",
   "scripts": {
     "test": "npx eslint *.js && node test.js"
   },
@@ -15,20 +13,24 @@
     "node": "^10.16.0 || >=11.7.0"
   },
   "files": [
-    "precompress.js"
+    "precompress"
   ],
-  "dependencies": {
-    "minimist": "1.2.0",
-    "p-map": "3.0.0",
-    "rrdir": "4.0.0"
-  },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "11.0.2",
+    "@rollup/plugin-json": "4.0.2",
+    "@rollup/plugin-node-resolve": "7.1.1",
     "eslint": "6.8.0",
-    "eslint-config-silverwind": "6.0.2",
+    "eslint-config-silverwind": "10.0.0",
     "execa": "4.0.0",
-    "rimraf": "3.0.1",
+    "minimist": "1.2.0",
+    "p-map": "4.0.0",
+    "rimraf": "3.0.2",
+    "rollup": "2.0.2",
+    "rollup-plugin-hashbang": "2.2.2",
+    "rollup-plugin-terser": "5.2.0",
+    "rrdir": "5.0.0",
     "updates": "9.3.3",
-    "versions": "7.0.5"
+    "versions": "8.2.1"
   },
   "keywords": [
     "precompress",

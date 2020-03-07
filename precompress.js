@@ -1,7 +1,18 @@
 #!/usr/bin/env node
 "use strict";
 
-const args = require("minimist")(process.argv.slice(2), {
+const minimist = require("minimist");
+const pMap = require("p-map");
+const rrdir = require("rrdir");
+const {constants, gzip, brotliCompress} = require("zlib");
+const {cpus} = require("os");
+const {hrtime} = require("process");
+const {promisify} = require("util");
+const {stat, readFile, writeFile} = require("fs").promises;
+
+const {version} = require("./package.json");
+
+const args = minimist(process.argv.slice(2), {
   boolean: [
     "h", "help",
     "v", "version",
@@ -31,7 +42,7 @@ function exit(err) {
 }
 
 if (args.version) {
-  console.info(require(require("path").join(__dirname, "package.json")).version);
+  console.info(version);
   process.exit(0);
 }
 
@@ -52,33 +63,31 @@ if (!args._.length || args.help) {
   exit();
 }
 
-const {promisify} = require("util");
-const {stat, readFile, writeFile} = require("fs").promises;
-const {cpus} = require("os");
-const pMap = require("p-map");
-const rrdir = require("rrdir");
-const zlib = require("zlib");
-
 const types = args.types ? args.types.split(",") : ["gz", "br"];
 
-let brotli, gzip;
-
-const opts = {
-  gzip: {level: zlib.constants.Z_BEST_COMPRESSION},
-  brotli: {[zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY},
-};
-
+let gzipEncode;
 if (types.includes("gz")) {
-  gzip = (data) => promisify(zlib.gzip)(data, opts.gzip);
+  gzipEncode = (data) => promisify(gzip)(data, {level: constants.Z_BEST_COMPRESSION});
 }
 
+let brotliEncode;
 if (types.includes("br")) {
-  brotli = (data) => promisify(zlib.brotliCompress)(data, opts.brotli);
+  brotliEncode = (data) => promisify(brotliCompress)(data, {[constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY});
 }
 
 function time() {
-  const t = process.hrtime();
+  const t = hrtime();
   return Math.round((t[0] * 1e9 + t[1]) / 1e6);
+}
+
+function filters(name) {
+  const arg = args[name];
+  if (!arg) return null;
+
+  const arr = typeof arg === "string" ? arg.split(",").filter(v => !!v) : arg;
+  if (!arr || !arr.length) return null;
+
+  return arr.map(ext => `**/*.${ext}`);
 }
 
 async function compress(file) {
@@ -89,8 +98,8 @@ async function compress(file) {
 
   try {
     const data = await readFile(file);
-    if (gzip) await writeFile(`${file}.gz`, await gzip(data));
-    if (brotli) await writeFile(`${file}.br`, await brotli(data));
+    if (gzipEncode) await writeFile(`${file}.gz`, await gzipEncode(data));
+    if (brotliEncode) await writeFile(`${file}.br`, await brotliEncode(data));
   } catch (err) {
     console.info(`Error on ${file}: ${err.code}`);
   }
@@ -111,7 +120,7 @@ async function main() {
   for (const file of args._) {
     const stats = await stat(file);
     if (stats.isDirectory()) {
-      for await (const entry of rrdir.stream(file)) {
+      for await (const entry of rrdir.stream(file, {include: filters("include"), exclude: filters("exclude")})) {
         if (!entry.directory) {
           files.push(entry.path);
         }
@@ -121,18 +130,10 @@ async function main() {
     }
   }
 
-  // remove already compressed files
+  // exclude already compressed files
   files = files.filter(file => {
     return !file.endsWith(".br") && !file.endsWith(".gz");
   });
-
-  if (args.include) {
-    files = files.filter(file => args.include.split(",").some(include => file.endsWith(include)));
-  }
-
-  if (args.exclude) {
-    files = files.filter(file => !args.exclude.split(",").some(exclude => file.endsWith(exclude)));
-  }
 
   let concurrency;
   if (args.concurrency && typeof args.concurrency === "number" && args.concurrency > 0) {

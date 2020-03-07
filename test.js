@@ -7,7 +7,7 @@ const {promisify} = require("util");
 const {mkdir, writeFile, readdir} = require("fs").promises;
 const rimraf = promisify(require("rimraf"));
 
-const script = join(__dirname, "precompress.js");
+const script = join(__dirname, "precompress");
 const dir = join(__dirname, "dir");
 const file = join(__dirname, "dir", "index.html");
 
