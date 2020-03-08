@@ -12,6 +12,6 @@ module.exports = {
     require("@rollup/plugin-json")(),
     require("@rollup/plugin-node-resolve")(),
     require("@rollup/plugin-commonjs")(),
-    require("rollup-plugin-terser").terser(),
+    require("rollup-plugin-terser").terser({output: {comments: false}}),
   ],
 };
