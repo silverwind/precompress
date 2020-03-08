@@ -31,7 +31,7 @@
     "rollup-plugin-hashbang": "2.2.2",
     "rollup-plugin-terser": "5.2.0",
     "rrdir": "5.0.0",
-    "updates": "10.0.0",
+    "updates": "10.0.1",
     "versions": "8.2.4"
   },
   "keywords": [
