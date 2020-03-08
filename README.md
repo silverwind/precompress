@@ -1,5 +1,5 @@
 # precompress
-[![](https://img.shields.io/npm/v/precompress.svg?style=flat)](https://www.npmjs.org/package/precompress) [![](https://img.shields.io/npm/dm/precompress.svg)](https://www.npmjs.org/package/precompress) [![](https://api.travis-ci.org/silverwind/precompress.svg?style=flat)](https://travis-ci.org/silverwind/precompress)
+[![](https://img.shields.io/npm/v/precompress.svg?style=flat)](https://www.npmjs.org/package/precompress) [![](https://img.shields.io/npm/dm/precompress.svg)](https://www.npmjs.org/package/precompress)
 
 > Generate pre-compressed .gz and .br files for static web servers
 
