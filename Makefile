@@ -1,6 +1,6 @@
 test: rollup
 	yarn -s run eslint --color --quiet *.js
-	node --trace-deprecation --throw-deprecation test.js
+	yarn -s run jest --color
 
 rollup:
 	yarn -s run rollup --silent --compact -c rollup.config.js
@@ -15,15 +15,15 @@ update:
 	yarn
 
 patch: test
-	yarn -s run versions -C patch
+	node versions.js -C patch
 	$(MAKE) publish
 
 minor: test
-	yarn -s run versions -C minor
+	node versions.js -C minor
 	$(MAKE) publish
 
 major: test
-	yarn -s run versions -C major
+	node versions.js -C major
 	$(MAKE) publish
 
 

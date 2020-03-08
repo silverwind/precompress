@@ -1,33 +1,29 @@
 "use strict";
 
-const assert = require("assert");
+const del = require("del");
 const execa = require("execa");
 const {join} = require("path");
-const {promisify} = require("util");
 const {mkdir, writeFile, readdir} = require("fs").promises;
-const rimraf = promisify(require("rimraf"));
+const {test, expect, beforeAll, afterAll} = global;
 
 const script = join(__dirname, "precompress");
 const dir = join(__dirname, "dir");
 const file = join(__dirname, "dir", "index.html");
 
-async function exit(err) {
-  await rimraf(dir);
-  if (err) console.info(err);
-  process.exit(err ? 1 : 0);
-}
-
-async function main() {
-  await rimraf(dir);
+beforeAll(async () => {
+  await del(dir);
   await mkdir(dir);
   await writeFile(file, (new Array(1e4)).join("a"));
+});
 
+test("simple compress", async () => {
   await execa("node", [script, dir]);
-
   const files = await readdir(dir);
-  assert(files.includes("index.html"));
-  assert(files.includes("index.html.br"));
-  assert(files.includes("index.html.gz"));
-}
+  expect(files).toContain("index.html");
+  expect(files).toContain("index.html.br");
+  expect(files).toContain("index.html.gz");
+});
 
-main().then(exit).catch(exit);
+afterAll(async () => {
+  await del(dir);
+});

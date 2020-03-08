@@ -9,7 +9,6 @@ const {cpus} = require("os");
 const {hrtime} = require("process");
 const {promisify} = require("util");
 const {stat, readFile, writeFile} = require("fs").promises;
-
 const {version} = require("./package.json");
 
 const args = minimist(process.argv.slice(2), {
