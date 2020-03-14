@@ -33,9 +33,21 @@ function makeTest(args, expected) {
   };
 }
 
-test("simple", makeTest("", ["index.html", "index.html.br", "index.html.gz", "image.png", "image.png.br", "image.png.gz"]));
+test("simple", makeTest("", [
+  "index.html",
+  "index.html.br",
+  "index.html.gz",
+  "image.png",
+  "image.png.br",
+  "image.png.gz"
+]));
 
-test("exclude", makeTest("-e png", ["index.html", "index.html.br", "index.html.gz", "image.png"]));
+test("exclude", makeTest("-e png", [
+  "index.html",
+  "index.html.br",
+  "index.html.gz",
+  "image.png"
+]));
 
 test("error", async () => {
   await expect(run("-e png,html")).rejects.toThrow();
