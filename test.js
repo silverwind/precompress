@@ -2,28 +2,41 @@
 
 const del = require("del");
 const execa = require("execa");
+const tempy = require("tempy");
 const {join} = require("path");
-const {mkdir, writeFile, readdir} = require("fs").promises;
-const {test, expect, beforeAll, afterAll} = global;
+const {chdir} = require("process");
+const {writeFileSync, readdirSync} = require("fs");
+const {test, expect, beforeEach, afterAll} = global;
+const testDir = tempy.directory();
+const {bin} = require("./package.json");
 
-const script = join(__dirname, "precompress");
-const dir = join(__dirname, "dir");
-const file = join(__dirname, "dir", "index.html");
-
-beforeAll(async () => {
-  await del(dir);
-  await mkdir(dir);
-  await writeFile(file, (new Array(1e4)).join("a"));
+beforeEach(() => {
+  chdir(testDir);
+  del.sync("*");
+  writeFileSync("index.html", (new Array(1e4)).join("index"));
+  writeFileSync("image.png", (new Array(1e4)).join("image"));
 });
 
-test("simple compress", async () => {
-  await execa("node", [script, dir]);
-  const files = await readdir(dir);
-  expect(files).toContain("index.html");
-  expect(files).toContain("index.html.br");
-  expect(files).toContain("index.html.gz");
+afterAll(() => {
+  del.sync(testDir, {force: true});
 });
 
-afterAll(async () => {
-  await del(dir);
+async function run(args) {
+  const argsArr = [".", ...args.split(/\s+/).map(s => s.trim()).filter(s => !!s)];
+  return execa(join(__dirname, bin), argsArr, {cwd: testDir});
+}
+
+function makeTest(args, expected) {
+  return async () => {
+    await run(args);
+    expect(readdirSync(testDir).sort()).toEqual(expected.sort());
+  };
+}
+
+test("simple", makeTest("", ["index.html", "index.html.br", "index.html.gz", "image.png", "image.png.br", "image.png.gz"]));
+
+test("exclude", makeTest("-e png", ["index.html", "index.html.br", "index.html.gz", "image.png"]));
+
+test("error", async () => {
+  await expect(run("-e png,html")).rejects.toThrow();
 });

@@ -134,6 +134,10 @@ async function main() {
     return !file.endsWith(".br") && !file.endsWith(".gz");
   });
 
+  if (!files.length) {
+    throw new Error(`No matching files found`);
+  }
+
   let concurrency;
   if (args.concurrency && typeof args.concurrency === "number" && args.concurrency > 0) {
     concurrency = args.concurrency;
