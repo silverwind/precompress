@@ -8,14 +8,15 @@ const {constants, gzip, brotliCompress} = require("zlib");
 const {cpus} = require("os");
 const {hrtime} = require("process");
 const {promisify} = require("util");
-const {stat, readFile, writeFile} = require("fs").promises;
+const {stat, readFile, writeFile, realpath} = require("fs").promises;
 const {version} = require("./package.json");
 
 const args = minimist(process.argv.slice(2), {
   boolean: [
+    "f", "follow",
     "h", "help",
-    "v", "version",
     "s", "silent",
+    "v", "version",
   ],
   string: [
     "t", "types",
@@ -25,13 +26,13 @@ const args = minimist(process.argv.slice(2), {
     "c", "concurrency",
   ],
   alias: {
-    t: "types",
     c: "concurrency",
-    i: "include",
     e: "exclude",
     h: "help",
-    v: "version",
+    i: "include",
     s: "silent",
+    t: "types",
+    v: "version",
   },
 });
 
@@ -53,6 +54,7 @@ if (!args._.length || args.help) {
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
+    -f, --follow             Follow symbolic links
     -s, --silent             Do not print compression times
     -h, --help               Show this text
     -v, --version            Show the version
@@ -114,18 +116,25 @@ async function main() {
     start = time();
   }
 
+  const rrdirOpts = {
+    include: filters("include"),
+    exclude: filters("exclude"),
+  };
+
+  if (args.follow) {
+    rrdirOpts.followSymlinks = true;
+  }
+
   // obtain file paths
   let files = [];
   for (const file of args._) {
     const stats = await stat(file);
     if (stats.isDirectory()) {
-      for await (const entry of rrdir.stream(file, {include: filters("include"), exclude: filters("exclude")})) {
-        if (!entry.directory) {
-          files.push(entry.path);
-        }
+      for await (const entry of rrdir.stream(file, rrdirOpts)) {
+        if (!entry.directory) files.push(entry.path);
       }
     } else {
-      files.push(file);
+      files.push(args.follow ? await realpath(file) : file);
     }
   }
 
