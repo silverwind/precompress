@@ -15,15 +15,15 @@ update:
 	yarn
 
 patch: test
-	yarn -s run versions -C patch
+	yarn -s run versions -Cc 'make rollup' patch
 	$(MAKE) publish
 
 minor: test
-	yarn -s run versions -C minor
+	yarn -s run versions -Cc 'make rollup' patch
 	$(MAKE) publish
 
 major: test
-	yarn -s run versions -C major
+	yarn -s run versions -Cc 'make rollup' patch
 	$(MAKE) publish
 
 
