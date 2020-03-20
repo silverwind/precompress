@@ -27,13 +27,13 @@
     "minimist": "1.2.5",
     "p-map": "4.0.0",
     "rimraf": "3.0.2",
-    "rollup": "2.0.6",
+    "rollup": "2.1.0",
     "rollup-plugin-hashbang": "2.2.2",
     "rollup-plugin-terser": "5.3.0",
     "rrdir": "7.0.1",
     "tempy": "0.5.0",
-    "updates": "10.2.4",
-    "versions": "8.2.5"
+    "updates": "10.2.5",
+    "versions": "8.2.6"
   },
   "keywords": [
     "precompress",
