@@ -76,6 +76,10 @@ if (types.includes("br")) {
   brotliEncode = (data) => promisify(brotliCompress)(data, {[constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY});
 }
 
+function flat(arr) {
+  return [].concat(...arr);
+}
+
 function time() {
   const t = hrtime();
   return Math.round((t[0] * 1e9 + t[1]) / 1e6);
@@ -85,7 +89,7 @@ function filters(name) {
   const arg = args[name];
   if (!arg) return null;
 
-  const arr = (Array.isArray(arg) ? arg : [arg]).map(item => item.split(",")).flat().filter(v => !!v);
+  const arr = flat((Array.isArray(arg) ? arg : [arg]).map(item => item.split(","))).filter(v => !!v);
   if (!arr || !arr.length) return null;
 
   return arr.map(ext => `**/*.${ext}`);
