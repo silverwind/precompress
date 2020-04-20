@@ -49,6 +49,13 @@ test("exclude", makeTest("-e png", [
   "image.png"
 ]));
 
+test("exclude #2", makeTest("-e png -e png,png", [
+  "index.html",
+  "index.html.br",
+  "index.html.gz",
+  "image.png"
+]));
+
 test("error", async () => {
   await expect(run("-e png,html")).rejects.toThrow();
 });

@@ -85,7 +85,7 @@ function filters(name) {
   const arg = args[name];
   if (!arg) return null;
 
-  const arr = typeof arg === "string" ? arg.split(",").filter(v => !!v) : arg;
+  const arr = (Array.isArray(arg) ? arg : [arg]).map(item => item.split(",")).flat().filter(v => !!v);
   if (!arr || !arr.length) return null;
 
   return arr.map(ext => `**/*.${ext}`);
