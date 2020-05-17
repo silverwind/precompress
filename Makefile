@@ -9,10 +9,13 @@ publish:
 	git push -u --tags origin master
 	npm publish
 
-update:
-	yarn -s run updates -u
+deps:
 	rm -rf node_modules
 	yarn
+
+update:
+	yarn -s run updates -u
+	$(MAKE) deps
 
 patch: test
 	yarn -s run versions -Cc 'make rollup' patch
@@ -26,5 +29,4 @@ major: test
 	yarn -s run versions -Cc 'make rollup' patch
 	$(MAKE) publish
 
-
-.PHONY: test rollup publish update patch minor major
+.PHONY: test rollup publish deps update patch minor major
