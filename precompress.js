@@ -68,12 +68,16 @@ const types = args.types ? args.types.split(",") : ["gz", "br"];
 
 let gzipEncode;
 if (types.includes("gz")) {
-  gzipEncode = (data) => promisify(gzip)(data, {level: constants.Z_BEST_COMPRESSION});
+  const gzipPromise = promisify(gzip);
+  const gzipOpts = {level: constants.Z_BEST_COMPRESSION};
+  gzipEncode = (data) => gzipPromise(data, gzipOpts);
 }
 
 let brotliEncode;
 if (types.includes("br")) {
-  brotliEncode = (data) => promisify(brotliCompress)(data, {[constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY});
+  const brotliPromise = promisify(brotliCompress);
+  const brotliOpts = {[constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY};
+  brotliEncode = (data) => brotliPromise(data, brotliOpts);
 }
 
 function flat(arr) {
