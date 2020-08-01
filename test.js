@@ -56,6 +56,15 @@ test("exclude #2", makeTest("-e png -e png,png", [
   "image.png"
 ]));
 
+test("mtime", makeTest("-m", [
+  "index.html",
+  "index.html.br",
+  "index.html.gz",
+  "image.png",
+  "image.png.br",
+  "image.png.gz"
+]));
+
 test("error", async () => {
   await expect(run("-e png,html")).rejects.toThrow();
 });

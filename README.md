@@ -19,6 +19,7 @@ usage: precompress [options] <files,dirs,...>
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
+    -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
     -s, --silent             Do not print compression times
     -h, --help               Show this text

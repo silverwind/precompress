@@ -15,6 +15,7 @@ const args = minimist(process.argv.slice(2), {
   boolean: [
     "f", "follow",
     "h", "help",
+    "m", "mtime",
     "s", "silent",
     "v", "version",
   ],
@@ -30,6 +31,7 @@ const args = minimist(process.argv.slice(2), {
     e: "exclude",
     h: "help",
     i: "include",
+    m: "mtime",
     s: "silent",
     t: "types",
     v: "version",
@@ -54,6 +56,7 @@ if (!args._.length || args.help) {
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions
     -e, --exclude <ext,...>  Exclude given file extensions
+    -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
     -s, --silent             Do not print compression times
     -h, --help               Show this text
@@ -105,10 +108,28 @@ async function compress(file) {
     start = time();
   }
 
+  let skipGzip = false, skipBrotli = false;
+  if (args.mtime) {
+    if (gzipEncode) {
+      try {
+        const [statsSource, statsTarget] = await Promise.all([stat(file), stat(`${file}.gz`)]);
+        if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipGzip = true;
+      } catch {}
+    }
+    if (brotliEncode) {
+      try {
+        const [statsSource, statsTarget] = await Promise.all([stat(file), stat(`${file}.br`)]);
+        if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipBrotli = true;
+      } catch {}
+    }
+  }
+
+  if (skipBrotli && skipGzip) return;
+
   try {
     const data = await readFile(file);
-    if (gzipEncode) await writeFile(`${file}.gz`, await gzipEncode(data));
-    if (brotliEncode) await writeFile(`${file}.br`, await brotliEncode(data));
+    if (!skipGzip && gzipEncode) await writeFile(`${file}.gz`, await gzipEncode(data));
+    if (!skipBrotli && brotliEncode) await writeFile(`${file}.br`, await brotliEncode(data));
   } catch (err) {
     console.info(`Error on ${file}: ${err.code}`);
   }
