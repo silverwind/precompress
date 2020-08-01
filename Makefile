@@ -22,11 +22,11 @@ patch: test
 	$(MAKE) publish
 
 minor: test
-	yarn -s run versions -Cc 'make rollup' patch
+	yarn -s run versions -Cc 'make rollup' minor
 	$(MAKE) publish
 
 major: test
-	yarn -s run versions -Cc 'make rollup' patch
+	yarn -s run versions -Cc 'make rollup' major
 	$(MAKE) publish
 
 .PHONY: test rollup publish deps update patch minor major
