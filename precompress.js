@@ -112,28 +112,22 @@ function filters(name) {
 }
 
 async function compress(file) {
-  let start;
-  if (!args.silent) {
-    start = time();
-  }
+  const start = args.silent ? null : time();
 
   let skipGzip = false, skipBrotli = false;
-  if (args.mtime) {
-    if (gzipEncode) {
-      try {
-        const [statsSource, statsTarget] = await Promise.all([stat(file), stat(`${file}.gz`)]);
-        if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipGzip = true;
-      } catch {}
-    }
-    if (brotliEncode) {
-      try {
-        const [statsSource, statsTarget] = await Promise.all([stat(file), stat(`${file}.br`)]);
-        if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipBrotli = true;
-      } catch {}
-    }
+  if (args.mtime && gzipEncode) {
+    try {
+      const [statsSource, statsTarget] = await Promise.all([stat(file), stat(`${file}.gz`)]);
+      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipGzip = true;
+    } catch {}
   }
-
-  if (skipBrotli && skipGzip) return;
+  if (args.mtime && brotliEncode) {
+    try {
+      const [statsSource, statsTarget] = await Promise.all([stat(file), stat(`${file}.br`)]);
+      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipBrotli = true;
+    } catch {}
+  }
+  if (skipGzip && skipBrotli) return;
 
   try {
     const data = await readFile(file);
@@ -143,25 +137,17 @@ async function compress(file) {
     console.info(`Error on ${file}: ${err.code}`);
   }
 
-  if (!args.silent) {
-    console.info(`Compressed ${file} in ${time() - start}ms`);
-  }
+  if (start) console.info(`Compressed ${file} in ${time() - start}ms`);
 }
 
 async function main() {
-  let start;
-  if (!args.silent) {
-    start = time();
-  }
+  const start = args.silent ? null : time();
 
   const rrdirOpts = {
     include: filters("include"),
     exclude: filters("exclude"),
+    followSymlinks: args.follow,
   };
-
-  if (args.follow) {
-    rrdirOpts.followSymlinks = true;
-  }
 
   // obtain file paths
   let files = [];
@@ -193,10 +179,7 @@ async function main() {
   }
 
   await pMap(files, compress, {concurrency});
-
-  if (!args.silent) {
-    console.info(`Done in ${time() - start}ms`);
-  }
+  if (start) console.info(`Done in ${time() - start}ms`);
 }
 
 main().then(exit).catch(exit);
