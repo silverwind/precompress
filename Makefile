@@ -1,9 +1,10 @@
-test: rollup
+test: build
 	yarn -s run eslint --color --quiet *.js
 	yarn -s run jest --color
 
-rollup:
-	yarn -s run rollup --silent --compact -c rollup.config.js
+build:
+	yarn -s run ncc build precompress.js -q -m -o .
+	@mv index.js precompress
 
 publish:
 	git push -u --tags origin master
@@ -18,15 +19,15 @@ update:
 	$(MAKE) deps
 
 patch: test
-	yarn -s run versions -Cc 'make rollup' patch
+	yarn -s run versions -Cc 'make build' patch
 	$(MAKE) publish
 
 minor: test
-	yarn -s run versions -Cc 'make rollup' minor
+	yarn -s run versions -Cc 'make build' minor
 	$(MAKE) publish
 
 major: test
-	yarn -s run versions -Cc 'make rollup' major
+	yarn -s run versions -Cc 'make build' major
 	$(MAKE) publish
 
-.PHONY: test rollup publish deps update patch minor major
+.PHONY: test build publish deps update patch minor major
