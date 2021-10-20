@@ -1,14 +1,14 @@
-"use strict";
-
-const del = require("del");
-const execa = require("execa");
-const tempy = require("tempy");
-const {join} = require("path");
-const {chdir} = require("process");
-const {writeFileSync, readdirSync} = require("fs");
+import del from "del";
+import execa from "execa";
+import tempy from "tempy";
+import {join, dirname} from "path";
+import {chdir} from "process";
+import {fileURLToPath} from "url";
+import {writeFileSync, readdirSync} from "fs";
 const {test, expect, beforeEach, afterAll} = global;
 const testDir = tempy.directory();
-const {bin} = require("./package.json");
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 beforeEach(() => {
   chdir(testDir);
@@ -23,7 +23,7 @@ afterAll(() => {
 
 async function run(args) {
   const argsArr = [".", ...args.split(/\s+/).map(s => s.trim()).filter(s => !!s)];
-  return execa(join(__dirname, bin), argsArr, {cwd: testDir});
+  return execa(join(__dirname, "bin/precompress.js"), argsArr, {cwd: testDir});
 }
 
 function makeTest(args, expected) {

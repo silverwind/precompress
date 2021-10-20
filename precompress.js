@@ -1,15 +1,14 @@
 #!/usr/bin/env node
-"use strict";
+import minimist from "minimist";
+import pMap from "p-map";
+import rrdir from "rrdir";
+import {constants, gzip, brotliCompress} from "zlib";
+import {cpus} from "os";
+import {hrtime} from "process";
+import {promisify} from "util";
+import {promises, readFileSync} from "fs";
 
-const minimist = require("minimist");
-const pMap = require("p-map");
-const rrdir = require("rrdir");
-const {constants, gzip, brotliCompress} = require("zlib");
-const {cpus} = require("os");
-const {hrtime} = require("process");
-const {promisify} = require("util");
-const {stat, readFile, writeFile, realpath} = require("fs").promises;
-const {version} = require("./package.json");
+const {stat, readFile, writeFile, realpath} = promises;
 
 const args = minimist(process.argv.slice(2), {
   boolean: [
@@ -44,6 +43,7 @@ function exit(err) {
 }
 
 if (args.version) {
+  const {version} = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
   console.info(version);
   process.exit(0);
 }
@@ -92,10 +92,6 @@ if (types.includes("br")) {
   brotliEncode = data => brotliPromise(data, brotliOpts);
 }
 
-function flat(arr) {
-  return [].concat(...arr);
-}
-
 function time() {
   const t = hrtime();
   return Math.round((t[0] * 1e9 + t[1]) / 1e6);
@@ -105,7 +101,7 @@ function filters(name) {
   const arg = args[name];
   if (!arg) return null;
 
-  const arr = flat((Array.isArray(arg) ? arg : [arg]).map(item => item.split(","))).filter(v => !!v);
+  const arr = (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(v => !!v);
   if (!arr || !arr.length) return null;
 
   return arr.map(ext => `**/*.${ext}`);

@@ -5,27 +5,28 @@
   "author": "silverwind <me@silverwind.io>",
   "repository": "silverwind/precompress",
   "license": "BSD-2-Clause",
-  "bin": "./precompress",
+  "type": "module",
+  "bin": "./bin/precompress.js",
   "engines": {
-    "node": "^10.16.0 || >=11.7.0"
+    "node": ">= 12.20.0"
   },
   "files": [
-    "precompress"
+    "bin/precompress.js"
   ],
   "devDependencies": {
-    "@vercel/ncc": "0.24.1",
-    "del": "5.1.0",
-    "eslint": "7.6.0",
-    "eslint-config-silverwind": "18.0.1",
-    "execa": "4.0.3",
-    "jest": "26.2.2",
+    "@vercel/ncc": "0.31.1",
+    "del": "6.0.0",
+    "eslint": "8.0.1",
+    "eslint-config-silverwind": "42.0.1",
+    "execa": "5.1.1",
+    "jest": "27.3.1",
     "minimist": "1.2.5",
-    "p-map": "4.0.0",
+    "p-map": "5.1.0",
     "rimraf": "3.0.2",
-    "rrdir": "8.1.1",
-    "tempy": "0.6.0",
-    "updates": "10.3.3",
-    "versions": "8.4.2"
+    "rrdir": "8.2.2",
+    "tempy": "2.0.0",
+    "updates": "12.2.2",
+    "versions": "9.1.0"
   },
   "keywords": [
     "precompress",

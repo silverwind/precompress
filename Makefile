@@ -1,33 +1,40 @@
-test: build
-	yarn -s run eslint --color --quiet *.js
-	yarn -s run jest --color
+node_modules: package-lock.json
+	npm install --no-save
+	@touch node_modules
 
-build:
-	yarn -s run ncc build precompress.js -q -m -o .
-	@mv index.js precompress
+deps: node_modules
+
+lint:
+	npx eslint --color --quiet *.js
+
+test: lint build node_modules
+	NODE_OPTIONS="--experimental-vm-modules --no-warnings" npx jest --color
+
+build: node_modules
+	npx ncc build precompress.js -q -m -o bin
+	mv bin/index.js bin/precompress.js
+	chmod +x bin/precompress.js
 
 publish:
 	git push -u --tags origin master
 	npm publish
 
-deps:
-	rm -rf node_modules
-	yarn
+update: node_modules
+	npx updates -cu
+	rm -f package-lock.json
+	npm install
+	@touch node_modules
 
-update:
-	yarn -s run updates -u
-	$(MAKE) deps
+patch: test node_modules
+	npx versions -Cc 'make build' patch
+	@$(MAKE) --no-print-directory publish
 
-patch: test
-	yarn -s run versions -Cc 'make build' patch
-	$(MAKE) publish
+minor: test node_modules
+	npx versions -Cc 'make build' minor
+	@$(MAKE) --no-print-directory publish
 
-minor: test
-	yarn -s run versions -Cc 'make build' minor
-	$(MAKE) publish
+major: test node_modules
+	npx versions -Cc 'make build' major
+	@$(MAKE) --no-print-directory publish
 
-major: test
-	yarn -s run versions -Cc 'make build' major
-	$(MAKE) publish
-
-.PHONY: test build publish deps update patch minor major
+.PHONY: lint test build publish deps update patch minor major
