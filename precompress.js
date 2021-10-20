@@ -4,13 +4,13 @@ import pMap from "p-map";
 import rrdir from "rrdir";
 import {constants, gzip, brotliCompress} from "zlib";
 import {cpus} from "os";
-import {hrtime} from "process";
+import {hrtime, argv, exit} from "process";
 import {promisify} from "util";
 import {promises, readFileSync} from "fs";
 
 const {stat, readFile, writeFile, realpath} = promises;
 
-const args = minimist(process.argv.slice(2), {
+const args = minimist(argv.slice(2), {
   boolean: [
     "f", "follow",
     "h", "help",
@@ -37,15 +37,15 @@ const args = minimist(process.argv.slice(2), {
   },
 });
 
-function exit(err) {
+function finish(err) {
   if (err) console.error(err.stack || err.message || err);
-  process.exit(err ? 1 : 0);
+  exit(err ? 1 : 0);
 }
 
 if (args.version) {
   const {version} = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
   console.info(version);
-  process.exit(0);
+  exit(0);
 }
 
 if (!args._.length || args.help) {
@@ -178,4 +178,4 @@ async function main() {
   if (start) console.info(`Done in ${time() - start}ms`);
 }
 
-main().then(exit).catch(exit);
+main().then(finish).catch(finish);
