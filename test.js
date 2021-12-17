@@ -1,5 +1,5 @@
 import del from "del";
-import execa from "execa";
+import {execa} from "execa";
 import tempy from "tempy";
 import {join, dirname} from "path";
 import {chdir} from "process";
