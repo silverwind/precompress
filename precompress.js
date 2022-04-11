@@ -43,7 +43,7 @@ function finish(err) {
 }
 
 if (args.version) {
-  const {version} = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
+  const {version} = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
   console.info(version);
   exit(0);
 }
