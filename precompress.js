@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 import minimist from "minimist";
 import pMap from "p-map";
-import rrdir from "rrdir";
+import {rrdir} from "rrdir";
 import {constants, gzip, brotliCompress} from "zlib";
 import {cpus} from "os";
 import {hrtime, argv, exit} from "process";
 import {promisify} from "util";
-import {promises, readFileSync} from "fs";
-
-const {stat, readFile, writeFile, realpath} = promises;
+import {stat, readFile, writeFile, realpath} from "fs/promises";
+import {readFileSync} from "fs";
 
 const args = minimist(argv.slice(2), {
   boolean: [
@@ -43,7 +42,7 @@ function finish(err) {
 }
 
 if (args.version) {
-  const {version} = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
+  const {version} = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
   console.info(version);
   exit(0);
 }

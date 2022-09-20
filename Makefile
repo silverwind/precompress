@@ -10,9 +10,11 @@ lint:
 test: lint build node_modules
 	NODE_OPTIONS="--experimental-vm-modules --no-warnings" npx jest --color
 
+.PHONY: build
 build: node_modules
-	npx ncc build precompress.js -q -m -o bin
-	mv bin/index.js bin/precompress.js
+# workaround for https://github.com/evanw/esbuild/issues/1921
+	npx esbuild --log-level=warning --platform=node --target=node14 --format=esm --bundle --outdir=bin --legal-comments=none --banner:js="import {createRequire} from 'module';const require = createRequire(import.meta.url);" ./precompress.js
+	jq -r tostring package.json > bin/package.json
 	chmod +x bin/precompress.js
 
 publish:
