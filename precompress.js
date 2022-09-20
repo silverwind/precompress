@@ -44,7 +44,7 @@ function finish(err) {
 if (args.version) {
   const {version} = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
   console.info(version);
-  exit(0);
+  finish();
 }
 
 if (!args._.length || args.help) {
@@ -63,7 +63,7 @@ if (!args._.length || args.help) {
 
   Examples:
     $ precompress build`);
-  exit();
+  finish();
 }
 
 const types = args.types ? args.types.split(",") : ["gz", "br"];
@@ -100,7 +100,7 @@ function filters(name) {
   const arg = args[name];
   if (!arg) return null;
 
-  const arr = (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(v => !!v);
+  const arr = (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
   if (!arr || !arr.length) return null;
 
   return arr.map(ext => `**/*.${ext}`);
