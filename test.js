@@ -18,7 +18,7 @@ afterAll(() => {
 });
 
 async function run(args) {
-  const argsArr = [".", ...args.split(/\s+/).map(s => s.trim()).filter(s => !!s)];
+  const argsArr = [".", ...args.split(/\s+/).map(s => s.trim()).filter(Boolean)];
   return execa(script, argsArr, {cwd: testDir});
 }
 
