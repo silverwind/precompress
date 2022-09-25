@@ -91,6 +91,7 @@ if (types.includes("br")) {
   brotliEncode = data => brotliPromise(data, brotliOpts);
 }
 
+// TODO: use performance.now when targeting node 16
 function time() {
   const t = hrtime();
   return Math.round((t[0] * 1e9 + t[1]) / 1e6);
