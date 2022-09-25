@@ -102,7 +102,7 @@ function filters(name) {
   if (!arg) return null;
 
   const arr = (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
-  if (!arr || !arr.length) return null;
+  if (!arr?.length) return null;
 
   return arr.map(ext => `**/*.${ext}`);
 }
