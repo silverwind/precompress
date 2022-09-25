@@ -2,7 +2,7 @@ import {deleteSync} from "del";
 import {execa} from "execa";
 import {temporaryDirectory} from "tempy";
 import {fileURLToPath} from "url";
-import {writeFileSync, readdirSync} from "fs";
+import {writeFileSync, readdirSync, readFileSync} from "fs";
 
 const testDir = temporaryDirectory();
 const script = fileURLToPath(new URL("bin/precompress.js", import.meta.url));
@@ -28,6 +28,13 @@ function makeTest(args, expected) {
     expect(readdirSync(testDir).sort()).toEqual(expected.sort());
   };
 }
+
+test("version", async () => {
+  const {version: expected} = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
+  const {stdout, exitCode} = await execa("node", [script, "-v"]);
+  expect(stdout).toEqual(expected);
+  expect(exitCode).toEqual(0);
+});
 
 test("simple", makeTest("", [
   "index.html",

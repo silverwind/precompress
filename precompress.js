@@ -7,7 +7,7 @@ import {cpus} from "os";
 import {hrtime, argv, exit} from "process";
 import {promisify} from "util";
 import {stat, readFile, writeFile, realpath} from "fs/promises";
-import {readFileSync} from "fs";
+import {version} from "./package.json";
 
 const args = minimist(argv.slice(2), {
   boolean: [
@@ -42,7 +42,6 @@ function finish(err) {
 }
 
 if (args.version) {
-  const {version} = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
   console.info(version);
   finish();
 }
