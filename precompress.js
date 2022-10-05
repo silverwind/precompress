@@ -16,6 +16,7 @@ const args = minimist(argv.slice(2), {
     "m", "mtime",
     "s", "silent",
     "v", "version",
+    "V", "verbose",
   ],
   string: [
     "t", "types",
@@ -33,6 +34,7 @@ const args = minimist(argv.slice(2), {
     s: "silent",
     t: "types",
     v: "version",
+    V: "verbose",
   },
 });
 
@@ -56,7 +58,8 @@ if (!args._.length || args.help) {
     -e, --exclude <ext,...>  Exclude given file extensions
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
-    -s, --silent             Do not print compression times
+    -s, --silent             Do not print anything
+    -V, --verbose            Print individual file compression times
     -h, --help               Show this text
     -v, --version            Show the version
 
@@ -107,7 +110,7 @@ function filters(name) {
 }
 
 async function compress(file) {
-  const start = args.silent ? null : time();
+  const start = (args.silent || !args.verbose) ? null : time();
 
   let skipGzip = false, skipBrotli = false;
   if (args.mtime && gzipEncode) {
@@ -165,6 +168,8 @@ async function main() {
   if (!files.length) {
     throw new Error(`No matching files found`);
   }
+
+  if (!args.silent) console.info(`Compressing ${files.length} file${files.length > 1 ? "s" : ""}...`);
 
   let concurrency;
   if (args.concurrency && typeof args.concurrency === "number" && args.concurrency > 0) {
