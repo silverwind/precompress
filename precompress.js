@@ -18,6 +18,7 @@ const args = minimist(argv.slice(2), {
     "h", "help",
     "m", "mtime",
     "s", "silent",
+    "S", "sensitive",
     "v", "version",
     "V", "verbose",
   ],
@@ -35,6 +36,7 @@ const args = minimist(argv.slice(2), {
     i: "include",
     m: "mtime",
     s: "silent",
+    S: "sensitive",
     t: "types",
     v: "version",
     V: "verbose",
@@ -63,6 +65,7 @@ if (!args._.length || args.help) {
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
     -s, --silent             Do not print anything
+    -S, --sensitive          Treat include and exclude patterns case-sensitively
     -V, --verbose            Print individual file compression times
     -h, --help               Show this text
     -v, --version            Show the version
@@ -164,6 +167,7 @@ async function main() {
     include: getIncludes(),
     exclude: getExcludes(),
     followSymlinks: args.follow,
+    insensitive: !args.sensitive,
   };
 
   // obtain file paths

@@ -22,6 +22,7 @@ usage: precompress [options] <files,dirs,...>
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
     -s, --silent             Do not print anything
+    -S, --sensitive          Treat include and exclude extensions case-sensitively
     -V, --verbose            Print individual file compression times
     -h, --help               Show this text
     -v, --version            Show the version

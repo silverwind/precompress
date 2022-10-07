@@ -53,6 +53,14 @@ test("include", makeTest("-i html", [
   "image.png",
 ]));
 
+test("include #2", makeTest("-i HTML", [
+  "already.gz",
+  "index.html",
+  "index.html.br",
+  "index.html.gz",
+  "image.png",
+]));
+
 test("exclude", makeTest("-e png", [
   "already.gz",
   "index.html",
@@ -97,4 +105,5 @@ test("mtime", makeTest("-m", [
 
 test("error", async () => {
   await expect(run("-e png,html")).rejects.toThrow();
+  await expect(run("-i HTML -S")).rejects.toThrow();
 });
