@@ -17,11 +17,12 @@ usage: precompress [options] <files,dirs,...>
   Options:
     -t, --types <type,...>   Types of files to generate. Default: gz,br
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
-    -i, --include <ext,...>  Only include given file extensions
-    -e, --exclude <ext,...>  Exclude given file extensions
+    -i, --include <ext,...>  Only include given file extensions. Default: unset
+    -e, --exclude <ext,...>  Exclude given file extensions. Default: apng,avif,br,gif,gz,jpg,png,webp
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
-    -s, --silent             Do not print compression times
+    -s, --silent             Do not print anything
+    -V, --verbose            Print individual file compression times
     -h, --help               Show this text
     -v, --version            Show the version
 
