@@ -10,6 +10,7 @@ const script = fileURLToPath(new URL("bin/precompress.js", import.meta.url));
 beforeEach(() => {
   deleteSync(`${testDir}/*`, {force: true});
   writeFileSync(`${testDir}/index.html`, (new Array(1e4)).join("index"));
+  writeFileSync(`${testDir}/already.gz`, (new Array(1e4)).join("index"));
   writeFileSync(`${testDir}/image.png`, (new Array(1e4)).join("image"));
 });
 
@@ -37,35 +38,61 @@ test("version", async () => {
 });
 
 test("simple", makeTest("", [
+  "already.gz",
   "index.html",
   "index.html.br",
   "index.html.gz",
   "image.png",
-  "image.png.br",
-  "image.png.gz"
+]));
+
+test("include", makeTest("-i html", [
+  "already.gz",
+  "index.html",
+  "index.html.br",
+  "index.html.gz",
+  "image.png",
 ]));
 
 test("exclude", makeTest("-e png", [
+  "already.gz",
   "index.html",
   "index.html.br",
   "index.html.gz",
-  "image.png"
+  "image.png",
 ]));
 
 test("exclude #2", makeTest("-e png -e png,png", [
+  "already.gz",
   "index.html",
   "index.html.br",
   "index.html.gz",
-  "image.png"
+  "image.png",
 ]));
 
-test("mtime", makeTest("-m", [
+test("exclude #3", makeTest("-e html", [
+  "already.gz",
+  "index.html",
+  "image.png",
+  "image.png.br",
+  "image.png.gz",
+]));
+
+test("exclude #4", makeTest("-e ''", [
+  "already.gz",
   "index.html",
   "index.html.br",
   "index.html.gz",
   "image.png",
   "image.png.br",
-  "image.png.gz"
+  "image.png.gz",
+]));
+
+test("mtime", makeTest("-m", [
+  "already.gz",
+  "index.html",
+  "index.html.br",
+  "index.html.gz",
+  "image.png",
 ]));
 
 test("error", async () => {

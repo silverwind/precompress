@@ -9,6 +9,9 @@ import {promisify} from "util";
 import {stat, readFile, writeFile, realpath} from "fs/promises";
 import {version} from "./package.json";
 
+const alwaysExclude = ["gz", "br"];
+const defaultExclude = ["apng", "avif", "gif", "jpg", "png", "webp"];
+
 const args = minimist(argv.slice(2), {
   boolean: [
     "f", "follow",
@@ -49,13 +52,14 @@ if (args.version) {
 }
 
 if (!args._.length || args.help) {
+  const excludes = [...alwaysExclude, ...defaultExclude].sort().join(",");
   console.info(`usage: precompress [options] <files,dirs,...>
 
   Options:
     -t, --types <type,...>   Types of files to generate. Default: gz,br
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
-    -i, --include <ext,...>  Only include given file extensions
-    -e, --exclude <ext,...>  Exclude given file extensions
+    -i, --include <ext,...>  Only include given file extensions. Default: unset
+    -e, --exclude <ext,...>  Exclude given file extensions. Default: ${excludes}
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
     -s, --silent             Do not print anything
@@ -99,14 +103,29 @@ function time() {
   return Math.round((t[0] * 1e9 + t[1]) / 1e6);
 }
 
-function filters(name) {
-  const arg = args[name];
-  if (!arg) return null;
+function makeFilterGlob(ext) {
+  return `**/*.${ext}`;
+}
 
-  const arr = (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
-  if (!arr?.length) return null;
+function argToArray(arg) {
+  if (typeof arg === "boolean") return [];
+  return (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
+}
 
-  return arr.map(ext => `**/*.${ext}`);
+function getExcludes() {
+  if (!args.exclude) {
+    return [...alwaysExclude, ...defaultExclude].map(makeFilterGlob);
+  } else {
+    return [...alwaysExclude, ...argToArray(args.exclude)].map(makeFilterGlob);
+  }
+}
+
+function getIncludes() {
+  if (!args.include) {
+    return null;
+  } else {
+    return [argToArray(args.include)].map(makeFilterGlob);
+  }
 }
 
 async function compress(file) {
@@ -142,13 +161,13 @@ async function main() {
   const start = args.silent ? null : time();
 
   const rrdirOpts = {
-    include: filters("include"),
-    exclude: filters("exclude"),
+    include: getIncludes(),
+    exclude: getExcludes(),
     followSymlinks: args.follow,
   };
 
   // obtain file paths
-  let files = [];
+  const files = [];
   for (const file of args._) {
     const stats = await stat(file);
     if (stats.isDirectory()) {
@@ -160,24 +179,13 @@ async function main() {
     }
   }
 
-  // exclude already compressed files
-  files = files.filter(file => {
-    return !file.endsWith(".br") && !file.endsWith(".gz");
-  });
-
   if (!files.length) {
     throw new Error(`No matching files found`);
   }
 
   if (!args.silent) console.info(`Compressing ${files.length} file${files.length > 1 ? "s" : ""}...`);
 
-  let concurrency;
-  if (args.concurrency && typeof args.concurrency === "number" && args.concurrency > 0) {
-    concurrency = args.concurrency;
-  } else {
-    concurrency = Math.min(files.length, cpus().length);
-  }
-
+  const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, cpus().length);
   await pMap(files, compress, {concurrency});
   if (start) console.info(`Done in ${time() - start}ms`);
 }
