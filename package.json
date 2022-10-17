@@ -15,17 +15,17 @@
   ],
   "devDependencies": {
     "del": "7.0.0",
-    "esbuild": "0.15.10",
-    "eslint": "8.24.0",
-    "eslint-config-silverwind": "57.0.1",
+    "esbuild": "0.15.11",
+    "eslint": "8.25.0",
+    "eslint-config-silverwind": "59.0.0",
     "execa": "6.1.0",
-    "jest": "29.1.2",
-    "minimist": "1.2.6",
+    "jest": "29.2.0",
+    "minimist": "1.2.7",
     "p-map": "5.5.0",
     "rrdir": "10.1.0",
     "tempy": "3.0.0",
-    "updates": "13.1.8",
-    "versions": "9.3.3"
+    "updates": "13.1.9",
+    "versions": "9.3.4"
   },
   "keywords": [
     "precompress",
