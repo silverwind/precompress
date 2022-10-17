@@ -11,7 +11,7 @@ lint: node_modules
 
 .PHONY: test
 test: lint build node_modules
-	npx vitest run
+	npx vitest
 
 .PHONY: build
 build: node_modules
