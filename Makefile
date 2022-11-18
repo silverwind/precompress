@@ -7,7 +7,7 @@ deps: node_modules
 
 .PHONY: lint
 lint: node_modules
-	npx eslint --color --quiet *.js
+	npx eslint --color --quiet .
 
 .PHONY: test
 test: lint build node_modules
