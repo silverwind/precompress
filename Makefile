@@ -1,3 +1,6 @@
+SRC := precompress.js
+DST := bin/precompress.js
+
 node_modules: package-lock.json
 	npm install --no-save
 	@touch node_modules
@@ -14,10 +17,12 @@ test: lint build node_modules
 	npx vitest
 
 .PHONY: build
-build: node_modules
+build: $(DST)
+
+$(DST): $(SRC) node_modules
 # workaround for https://github.com/evanw/esbuild/issues/1921
-	npx esbuild --log-level=warning --platform=node --target=node14 --format=esm --bundle --minify --outdir=bin --legal-comments=none --banner:js="import {createRequire} from 'module';const require = createRequire(import.meta.url);" ./precompress.js
-	chmod +x bin/precompress.js
+	npx esbuild --log-level=warning --platform=node --target=node14 --format=esm --bundle --minify --legal-comments=none --banner:js="import {createRequire} from 'module';const require = createRequire(import.meta.url);" --define:import.meta.VERSION=\"$(shell jq .version package.json)\" --outfile=$(DST) $(SRC)
+	chmod +x $(DST)
 
 .PHONY: publish
 publish:
@@ -32,16 +37,16 @@ update: node_modules
 	@touch node_modules
 
 .PHONY: patch
-patch: test node_modules
-	npx versions -Cc 'make build' patch
+patch: node_modules test
+	npx versions -c 'make --no-print-directory build' patch package.json package-lock.json
 	@$(MAKE) --no-print-directory publish
 
 .PHONY: minor
-minor: test node_modules
-	npx versions -Cc 'make build' minor
+minor: node_modules test
+	npx versions -c 'make --no-print-directory build' minor package.json package-lock.json
 	@$(MAKE) --no-print-directory publish
 
 .PHONY: major
-major: test node_modules
-	npx versions -Cc 'make build' major
+major: node_modules test
+	npx versions -c 'make --no-print-directory build' major package.json package-lock.json
 	@$(MAKE) --no-print-directory publish

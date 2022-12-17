@@ -8,7 +8,7 @@
   "type": "module",
   "bin": "./bin/precompress.js",
   "engines": {
-    "node": ">= 14"
+    "node": ">= 16"
   },
   "files": [
     "bin/precompress.js"
@@ -26,19 +26,5 @@
     "updates": "13.2.4",
     "versions": "10.4.1",
     "vitest": "0.25.8"
-  },
-  "keywords": [
-    "precompress",
-    "pre-compress",
-    "compress",
-    "compression",
-    "static",
-    "assets",
-    "nginx",
-    "apache",
-    "gzip",
-    "gz",
-    "brotli",
-    "br"
-  ]
+  }
 }

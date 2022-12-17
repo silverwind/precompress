@@ -4,10 +4,9 @@ import pMap from "p-map";
 import {rrdir} from "rrdir";
 import {constants, gzip, brotliCompress} from "node:zlib";
 import {cpus} from "node:os";
-import {hrtime, argv, exit} from "node:process";
+import {argv, exit} from "node:process";
 import {promisify} from "node:util";
 import {stat, readFile, writeFile, realpath} from "node:fs/promises";
-import {version} from "./package.json";
 
 const alwaysExclude = ["gz", "br"];
 const defaultExclude = ["apng", "avif", "gif", "jpg", "png", "webp"];
@@ -49,7 +48,7 @@ function finish(err) {
 }
 
 if (args.version) {
-  console.info(version);
+  console.info(import.meta.VERSION);
   finish();
 }
 
@@ -88,27 +87,9 @@ const brotliOpts = {
   }
 };
 
-let gzipEncode;
-if (types.includes("gz")) {
-  const gzipPromise = promisify(gzip);
-  gzipEncode = data => gzipPromise(data, gzipOpts);
-}
-
-let brotliEncode;
-if (types.includes("br")) {
-  const brotliPromise = promisify(brotliCompress);
-  brotliEncode = data => brotliPromise(data, brotliOpts);
-}
-
-// TODO: use performance.now when targeting node 16
-function time() {
-  const t = hrtime();
-  return Math.round((t[0] * 1e9 + t[1]) / 1e6);
-}
-
-function makeFilterGlob(ext) {
-  return `**/*.${ext}`;
-}
+const gzipEncode = types.includes("gz") && (data => promisify(gzip)(data, gzipOpts));
+const brotliEncode = types.includes("br") && (data => promisify(brotliCompress)(data, brotliOpts));
+const extGlob = ext => `**/*.${ext}`;
 
 function argToArray(arg) {
   if (typeof arg === "boolean") return [];
@@ -117,9 +98,9 @@ function argToArray(arg) {
 
 function getExcludes() {
   if (!args.exclude) {
-    return [...alwaysExclude, ...defaultExclude].map(makeFilterGlob);
+    return [...alwaysExclude, ...defaultExclude].map(extGlob);
   } else {
-    return [...alwaysExclude, ...argToArray(args.exclude)].map(makeFilterGlob);
+    return [...alwaysExclude, ...argToArray(args.exclude)].map(extGlob);
   }
 }
 
@@ -127,12 +108,12 @@ function getIncludes() {
   if (!args.include) {
     return null;
   } else {
-    return [argToArray(args.include)].map(makeFilterGlob);
+    return [argToArray(args.include)].map(extGlob);
   }
 }
 
 async function compress(file) {
-  const start = (args.silent || !args.verbose) ? null : time();
+  const start = (args.silent || !args.verbose) ? null : performance.now();
 
   let skipGzip = false, skipBrotli = false;
   if (args.mtime && gzipEncode) {
@@ -157,11 +138,11 @@ async function compress(file) {
     console.info(`Error on ${file}: ${err.code}`);
   }
 
-  if (start) console.info(`Compressed ${file} in ${time() - start}ms`);
+  if (start) console.info(`Compressed ${file} in ${Math.round(performance.now() - start)}ms`);
 }
 
 async function main() {
-  const start = args.silent ? null : time();
+  const start = args.silent ? null : performance.now();
 
   const rrdirOpts = {
     include: getIncludes(),
@@ -170,7 +151,6 @@ async function main() {
     insensitive: !args.sensitive,
   };
 
-  // obtain file paths
   const files = [];
   for (const file of args._) {
     const stats = await stat(file);
@@ -183,15 +163,12 @@ async function main() {
     }
   }
 
-  if (!files.length) {
-    throw new Error(`No matching files found`);
-  }
-
+  if (!files.length) throw new Error(`No matching files found`);
   if (!args.silent) console.info(`Compressing ${files.length} file${files.length > 1 ? "s" : ""}...`);
 
   const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, cpus().length);
   await pMap(files, compress, {concurrency});
-  if (start) console.info(`Done in ${time() - start}ms`);
+  if (start) console.info(`Done in ${Math.round(performance.now() - start)}ms`);
 }
 
 main().then(finish).catch(finish);
