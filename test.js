@@ -1,8 +1,8 @@
 import {deleteSync} from "del";
 import {execa} from "execa";
 import {temporaryDirectory} from "tempy";
-import {fileURLToPath} from "url";
-import {writeFileSync, readdirSync, readFileSync} from "fs";
+import {fileURLToPath} from "node:url";
+import {writeFileSync, readdirSync, readFileSync} from "node:fs";
 
 const testDir = temporaryDirectory();
 const script = fileURLToPath(new URL("bin/precompress.js", import.meta.url));

@@ -2,11 +2,11 @@
 import minimist from "minimist";
 import pMap from "p-map";
 import {rrdir} from "rrdir";
-import {constants, gzip, brotliCompress} from "zlib";
-import {cpus} from "os";
-import {hrtime, argv, exit} from "process";
-import {promisify} from "util";
-import {stat, readFile, writeFile, realpath} from "fs/promises";
+import {constants, gzip, brotliCompress} from "node:zlib";
+import {cpus} from "node:os";
+import {hrtime, argv, exit} from "node:process";
+import {promisify} from "node:util";
+import {stat, readFile, writeFile, realpath} from "node:fs/promises";
 import {version} from "./package.json";
 
 const alwaysExclude = ["gz", "br"];
