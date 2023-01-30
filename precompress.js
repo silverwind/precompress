@@ -163,12 +163,14 @@ async function main() {
     }
   }
 
+  const filesText = `${files.length} file${files.length > 1 ? "s" : ""}`;
+
   if (!files.length) throw new Error(`No matching files found`);
-  if (!args.silent) console.info(`Compressing ${files.length} file${files.length > 1 ? "s" : ""}...`);
+  if (!args.silent) console.info(`Compressing ${filesText}...`);
 
   const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, cpus().length);
   await pMap(files, compress, {concurrency});
-  if (start) console.info(`Done in ${Math.round(performance.now() - start)}ms`);
+  if (start) console.info(`Compressed ${filesText} in ${Math.round(performance.now() - start)}ms`);
 }
 
 main().then(finish).catch(finish);
