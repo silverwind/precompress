@@ -84,27 +84,10 @@ const brotliEncode = types.includes("br") && (data => promisify(brotliCompress)(
     [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
   }
 }));
-const extGlob = ext => `**/*.${ext}`;
 
 function argToArray(arg) {
   if (typeof arg === "boolean") return [];
   return (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
-}
-
-function getExcludes() {
-  if (!args.exclude) {
-    return [...alwaysExclude, ...defaultExclude].map(extGlob);
-  } else {
-    return [...alwaysExclude, ...argToArray(args.exclude)].map(extGlob);
-  }
-}
-
-function getIncludes() {
-  if (!args.include) {
-    return null;
-  } else {
-    return [argToArray(args.include)].map(extGlob);
-  }
 }
 
 async function compress(file) {
@@ -136,12 +119,16 @@ async function compress(file) {
   if (start) console.info(`Compressed ${file} in ${Math.round(performance.now() - start)}ms`);
 }
 
+const extGlob = ext => `**/*.${ext}`;
+
 async function main() {
   const start = args.silent ? null : performance.now();
-
   const rrdirOpts = {
-    include: getIncludes(),
-    exclude: getExcludes(),
+    include: args.include ? [argToArray(args.include)].map(extGlob) : null,
+    exclude: [
+      ...alwaysExclude,
+      ...(args.exclude ? argToArray(args.exclude) : defaultExclude)
+    ].map(extGlob),
     followSymlinks: args.follow,
     insensitive: !args.sensitive,
   };
