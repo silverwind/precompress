@@ -75,20 +75,15 @@ if (!args._.length || args.help) {
 }
 
 const types = args.types ? args.types.split(",") : ["gz", "br"];
-
-const gzipOpts = {
+const gzipEncode = types.includes("gz") && (data => promisify(gzip)(data, {
   level: constants.Z_BEST_COMPRESSION,
-};
-
-const brotliOpts = {
+}));
+const brotliEncode = types.includes("br") && (data => promisify(brotliCompress)(data, {
   params: {
     [constants.BROTLI_PARAM_MODE]: constants.BROTLI_MODE_TEXT,
     [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
   }
-};
-
-const gzipEncode = types.includes("gz") && (data => promisify(gzip)(data, gzipOpts));
-const brotliEncode = types.includes("br") && (data => promisify(brotliCompress)(data, brotliOpts));
+}));
 const extGlob = ext => `**/*.${ext}`;
 
 function argToArray(arg) {
