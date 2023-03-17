@@ -33,7 +33,7 @@ publish:
 update: node_modules
 	npx updates -cu
 	rm -f package-lock.json
-	npm install
+	npm -rf node_modules install
 	@touch node_modules
 
 .PHONY: patch
