@@ -32,8 +32,8 @@ publish:
 .PHONY: update
 update: node_modules
 	npx updates -cu
-	rm -f package-lock.json
-	npm -rf node_modules install
+	rm -rf node_modules package-lock.json
+	npm install
 	@touch node_modules
 
 .PHONY: patch
