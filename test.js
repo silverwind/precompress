@@ -45,7 +45,7 @@ test("simple", makeTest("", [
   "image.png",
 ]));
 
-test("include", makeTest("-i html", [
+test("include", makeTest("-i html,foo", [
   "already.gz",
   "index.html",
   "index.html.br",

@@ -124,7 +124,7 @@ const extGlob = ext => `**/*.${ext}`;
 async function main() {
   const start = args.silent ? null : performance.now();
   const rrdirOpts = {
-    include: args.include ? [argToArray(args.include)].map(extGlob) : null,
+    include: args.include ? argToArray(args.include).map(extGlob) : null,
     exclude: [
       ...alwaysExclude,
       ...(args.exclude ? argToArray(args.exclude) : defaultExclude)
