@@ -5,12 +5,16 @@
 
 Compresses files for use with web servers like nginx with the `gzip_static` and `brotli_static` directives. Files are compressed in parallel, using the available CPU cores efficiently. Existing output files will always be overridden.
 
-## Installation
-```
-npm i precompress
+## Usage
+```bash
+# compress all files in the "build" directory
+npx precompress build
+
+# same with bun
+bunx precompress build
 ```
 
-## Usage
+## Options
 ```
 usage: precompress [options] <files,dirs,...>
 
