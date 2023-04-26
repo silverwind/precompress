@@ -15,15 +15,15 @@
   ],
   "devDependencies": {
     "del": "7.0.0",
-    "esbuild": "0.17.17",
-    "eslint": "8.38.0",
-    "eslint-config-silverwind": "65.1.5",
+    "esbuild": "0.17.18",
+    "eslint": "8.39.0",
+    "eslint-config-silverwind": "67.0.1",
     "execa": "7.1.1",
     "minimist": "1.2.8",
-    "p-map": "5.5.0",
+    "p-map": "6.0.0",
     "rrdir": "11.0.0",
     "tempy": "3.0.0",
-    "updates": "14.0.1",
+    "updates": "14.1.0",
     "versions": "11.0.0",
     "vitest": "0.30.1"
   }
