@@ -8,10 +8,10 @@ Compresses files for use with web servers like nginx with the `gzip_static` and 
 ## Usage
 ```bash
 # compress all files in the "build" directory
-npx precompress build
+npx precompress ./build
 
 # same with bun
-bunx precompress build
+bunx precompress ./build
 ```
 
 ## Options
@@ -22,17 +22,17 @@ usage: precompress [options] <files,dirs,...>
     -t, --types <type,...>   Types of files to generate. Default: gz,br
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions. Default: unset
-    -e, --exclude <ext,...>  Exclude given file extensions. Default: apng,avif,br,gif,gz,jpg,png,webp
+    -e, --exclude <ext,...>  Exclude given file extensions. Default: gz,br
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
     -s, --silent             Do not print anything
-    -S, --sensitive          Treat include and exclude extensions case-sensitively
+    -S, --sensitive          Treat include and exclude patterns case-sensitively
     -V, --verbose            Print individual file compression times
     -h, --help               Show this text
     -v, --version            Show the version
 
   Examples:
-    $ precompress build
+    $ precompress ./build
 ```
 
 © [silverwind](https://github.com/silverwind), distributed under BSD licence

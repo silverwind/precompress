@@ -9,7 +9,6 @@ import {promisify} from "node:util";
 import {stat, readFile, writeFile, realpath} from "node:fs/promises";
 
 const alwaysExclude = ["gz", "br"];
-const defaultExclude = ["apng", "avif", "gif", "jpg", "png", "webp"];
 
 const args = minimist(argv.slice(2), {
   boolean: [
@@ -53,14 +52,13 @@ if (args.version) {
 }
 
 if (!args._.length || args.help) {
-  const excludes = [...alwaysExclude, ...defaultExclude].sort().join(",");
   console.info(`usage: precompress [options] <files,dirs,...>
 
   Options:
     -t, --types <type,...>   Types of files to generate. Default: gz,br
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
     -i, --include <ext,...>  Only include given file extensions. Default: unset
-    -e, --exclude <ext,...>  Exclude given file extensions. Default: ${excludes}
+    -e, --exclude <ext,...>  Exclude given file extensions. Default: ${alwaysExclude}
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
     -s, --silent             Do not print anything
@@ -70,7 +68,7 @@ if (!args._.length || args.help) {
     -v, --version            Show the version
 
   Examples:
-    $ precompress build`);
+    $ precompress ./build`);
   finish();
 }
 
@@ -127,7 +125,7 @@ async function main() {
     include: args.include ? argToArray(args.include).map(extGlob) : null,
     exclude: [
       ...alwaysExclude,
-      ...(args.exclude ? argToArray(args.exclude) : defaultExclude)
+      ...(args.exclude ? argToArray(args.exclude) : [])
     ].map(extGlob),
     followSymlinks: args.follow,
     insensitive: !args.sensitive,

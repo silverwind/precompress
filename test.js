@@ -43,6 +43,8 @@ test("simple", makeTest("", [
   "index.html.br",
   "index.html.gz",
   "image.png",
+  "image.png.br",
+  "image.png.gz",
 ]));
 
 test("include", makeTest("-i html,foo", [
@@ -101,6 +103,8 @@ test("mtime", makeTest("-m", [
   "index.html.br",
   "index.html.gz",
   "image.png",
+  "image.png.br",
+  "image.png.gz",
 ]));
 
 test("error", async () => {
