@@ -3,15 +3,16 @@ import {execa} from "execa";
 import {temporaryDirectory} from "tempy";
 import {fileURLToPath} from "node:url";
 import {writeFileSync, readdirSync, readFileSync} from "node:fs";
+import {join} from "node:path";
 
 const testDir = temporaryDirectory();
 const script = fileURLToPath(new URL("bin/precompress.js", import.meta.url));
 
 beforeEach(() => {
-  deleteSync(`${testDir}/*`, {force: true});
-  writeFileSync(`${testDir}/index.html`, (new Array(1e4)).join("index"));
-  writeFileSync(`${testDir}/already.gz`, (new Array(1e4)).join("index"));
-  writeFileSync(`${testDir}/image.png`, (new Array(1e4)).join("image"));
+  deleteSync(join(testDir, "*"), {force: true});
+  writeFileSync(join(testDir, "index.html"), (new Array(1e4)).join("index"));
+  writeFileSync(join(testDir, "already.gz"), (new Array(1e4)).join("index"));
+  writeFileSync(join(testDir, "image.png"), (new Array(1e4)).join("image"));
 });
 
 afterAll(() => {
