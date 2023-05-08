@@ -7,6 +7,8 @@ import {cpus} from "node:os";
 import {argv, exit} from "node:process";
 import {promisify} from "node:util";
 import {stat, readFile, writeFile, realpath} from "node:fs/promises";
+import {extname} from "node:path";
+import {isBinaryFileSync} from "isbinaryfile";
 
 const alwaysExclude = ["gz", "br"];
 
@@ -72,13 +74,23 @@ if (!args._.length || args.help) {
   finish();
 }
 
+function getBrotliMode(data, path) {
+  if (extname(path).toLowerCase() === ".woff2") {
+    return constants.BROTLI_MODE_FONT;
+  } else if (isBinaryFileSync(data)) {
+    return constants.BROTLI_MODE_GENERIC;
+  } else {
+    return constants.BROTLI_MODE_TEXT;
+  }
+}
+
 const types = args.types ? args.types.split(",") : ["gz", "br"];
 const gzipEncode = types.includes("gz") && (data => promisify(gzip)(data, {
   level: constants.Z_BEST_COMPRESSION,
 }));
-const brotliEncode = types.includes("br") && (data => promisify(brotliCompress)(data, {
+const brotliEncode = types.includes("br") && ((data, path) => promisify(brotliCompress)(data, {
   params: {
-    [constants.BROTLI_PARAM_MODE]: constants.BROTLI_MODE_TEXT,
+    [constants.BROTLI_PARAM_MODE]: getBrotliMode(data, path),
     [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
   }
 }));
@@ -108,8 +120,12 @@ async function compress(file) {
 
   try {
     const data = await readFile(file);
-    if (!skipGzip && gzipEncode) await writeFile(`${file}.gz`, await gzipEncode(data));
-    if (!skipBrotli && brotliEncode) await writeFile(`${file}.br`, await brotliEncode(data));
+    if (!skipGzip && gzipEncode) {
+      await writeFile(`${file}.gz`, await gzipEncode(data));
+    }
+    if (!skipBrotli && brotliEncode) {
+      await writeFile(`${file}.br`, await brotliEncode(data, file));
+    }
   } catch (err) {
     console.info(`Error on ${file}: ${err.code}`);
   }
