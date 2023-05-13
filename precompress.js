@@ -9,6 +9,8 @@ import {promisify} from "node:util";
 import {stat, readFile, writeFile, realpath} from "node:fs/promises";
 import {extname} from "node:path";
 import {isBinaryFileSync} from "isbinaryfile";
+import {green, magenta, cyan, red, yellow} from "yoctocolors";
+import {readFileSync} from "node:fs";
 
 const alwaysExclude = ["gz", "br"];
 
@@ -48,6 +50,11 @@ function finish(err) {
   exit(err ? 1 : 0);
 }
 
+let version = import.meta.VERSION;
+if (!version) {
+  version = JSON.parse(readFileSync(new URL("package.json", import.meta.url))).version;
+}
+
 if (args.version) {
   console.info(import.meta.VERSION);
   finish();
@@ -81,6 +88,18 @@ function getBrotliMode(data, path) {
     return constants.BROTLI_MODE_GENERIC;
   } else {
     return constants.BROTLI_MODE_TEXT;
+  }
+}
+
+function reductionText(data, newData) {
+  const change = (((newData.byteLength / data.byteLength) * 100)).toPrecision(3);
+
+  if (change <= 80) {
+    return `(${green(change)}%)`;
+  } else if (change <= 100) {
+    return `(${yellow(change)}%)`;
+  } else {
+    return `(${red(change)}%)`;
   }
 }
 
@@ -121,16 +140,29 @@ async function compress(file) {
   try {
     const data = await readFile(file);
     if (!skipGzip && gzipEncode) {
-      await writeFile(`${file}.gz`, await gzipEncode(data));
+      const newFile = `${file}.gz`;
+      const newData = await gzipEncode(data);
+      await writeFile(newFile, newData);
+
+      if (start) {
+        const ms = Math.round(performance.now() - start);
+        const red = reductionText(data, newData);
+        console.info(`✓ compressed ${magenta(newFile)} in ${ms}ms ${red}`);
+      }
     }
     if (!skipBrotli && brotliEncode) {
-      await writeFile(`${file}.br`, await brotliEncode(data, file));
+      const newFile = `${file}.br`;
+      const newData = await brotliEncode(data, file);
+      await writeFile(newFile, newData);
+      if (start) {
+        const ms = Math.round(performance.now() - start);
+        const red = reductionText(data, newData);
+        console.info(`✓ compressed ${magenta(newFile)} in ${ms}ms ${red}`);
+      }
     }
   } catch (err) {
     console.info(`Error on ${file}: ${err.code}`);
   }
-
-  if (start) console.info(`Compressed ${file} in ${Math.round(performance.now() - start)}ms`);
 }
 
 const extGlob = ext => `**/*.${ext}`;
@@ -162,11 +194,13 @@ async function main() {
   const filesText = `${files.length} file${files.length > 1 ? "s" : ""}`;
 
   if (!files.length) throw new Error(`No matching files found`);
-  if (!args.silent) console.info(`Compressing ${filesText}...`);
+  if (!args.silent) console.info(`${cyan(`precompress ${version}`)} ${green(`compressing ${filesText}...`)}`);
 
   const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, cpus().length);
   await pMap(files, compress, {concurrency});
-  if (start) console.info(`Compressed ${filesText} in ${Math.round(performance.now() - start)}ms`);
+  if (start) console.info(green(
+    `✓ done in ${Math.round(performance.now() - start)}ms`,
+  ));
 }
 
 main().then(finish).catch(finish);

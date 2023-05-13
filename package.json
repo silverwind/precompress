@@ -26,6 +26,7 @@
     "tempy": "3.0.0",
     "updates": "14.1.0",
     "versions": "11.0.0",
-    "vitest": "0.31.0"
+    "vitest": "0.31.0",
+    "yoctocolors": "1.0.0"
   }
 }
