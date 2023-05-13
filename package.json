@@ -15,9 +15,9 @@
   ],
   "devDependencies": {
     "del": "7.0.0",
-    "esbuild": "0.17.18",
+    "esbuild": "0.17.19",
     "eslint": "8.40.0",
-    "eslint-config-silverwind": "69.0.2",
+    "eslint-config-silverwind": "72.0.0",
     "execa": "7.1.1",
     "isbinaryfile": "5.0.0",
     "minimist": "1.2.8",
