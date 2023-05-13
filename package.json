@@ -19,6 +19,7 @@
     "eslint": "8.40.0",
     "eslint-config-silverwind": "69.0.2",
     "execa": "7.1.1",
+    "isbinaryfile": "5.0.0",
     "minimist": "1.2.8",
     "p-map": "6.0.0",
     "rrdir": "11.0.1",
@@ -26,8 +27,5 @@
     "updates": "14.1.0",
     "versions": "11.0.0",
     "vitest": "0.31.0"
-  },
-  "dependencies": {
-    "isbinaryfile": "5.0.0"
   }
 }
