@@ -11,6 +11,7 @@ import {extname} from "node:path";
 import {isBinaryFileSync} from "isbinaryfile";
 import {readFileSync} from "node:fs";
 import supportsColor from "supports-color";
+import {green, magenta, cyan, red, yellow, disableColor} from "glowie";
 
 const alwaysExclude = ["gz", "br"];
 
@@ -45,16 +46,7 @@ const args = minimist(argv.slice(2), {
   },
 });
 
-let green, magenta, cyan, red, yellow;
-if (args.color === false || !supportsColor.stdout) {
-  green = magenta = cyan = red = yellow = str => str;
-} else {
-  green = str => `\x1b[32m${str}\x1b[0m`;
-  magenta = str => `\x1b[35m${str}\x1b[0m`;
-  cyan = str => `\x1b[36m${str}\x1b[0m`;
-  red = str => `\x1b[31m${str}\x1b[0m`;
-  yellow = str => `\x1b[33m${str}\x1b[0m`;
-}
+if (!supportsColor.stdout) disableColor();
 
 function finish(err) {
   if (err) console.error(err.stack || err.message || err);
