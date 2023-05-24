@@ -4,7 +4,7 @@ import pMap from "p-map";
 import {rrdir} from "rrdir";
 import {constants, gzip, brotliCompress} from "node:zlib";
 import {cpus} from "node:os";
-import {argv, exit} from "node:process";
+import {argv, exit, versions} from "node:process";
 import {promisify} from "node:util";
 import {stat, readFile, writeFile, realpath} from "node:fs/promises";
 import {extname} from "node:path";
@@ -14,6 +14,12 @@ import supportsColor from "supports-color";
 import {green, magenta, cyan, red, yellow, disableColor} from "glowie";
 
 const alwaysExclude = ["gz", "br"];
+const numCores = cpus().length;
+
+// raise libuv threadpool over default 4 when more cores are available
+if (versions?.uv && numCores > 4) {
+  process.env.UV_THREADPOOL_SIZE = String(numCores);
+}
 
 const args = minimist(argv.slice(2), {
   boolean: [
@@ -199,7 +205,7 @@ async function main() {
   if (!files.length) throw new Error(`No matching files found`);
   if (!args.silent) console.info(`${cyan(`precompress ${version}`)} ${green(`compressing ${filesText}...`)}`);
 
-  const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, cpus().length);
+  const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, numCores);
   await pMap(files, compress, {concurrency});
   if (start) console.info(green(
     `✓ done in ${Math.round(performance.now() - start)}ms`,
