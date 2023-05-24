@@ -16,10 +16,10 @@
   "devDependencies": {
     "del": "7.0.0",
     "esbuild": "0.17.19",
-    "eslint": "8.40.0",
-    "eslint-config-silverwind": "72.0.0",
+    "eslint": "8.41.0",
+    "eslint-config-silverwind": "73.0.0",
     "execa": "7.1.1",
-    "glowie": "1.0.0",
+    "glowie": "1.0.1",
     "isbinaryfile": "5.0.0",
     "minimist": "1.2.8",
     "p-map": "6.0.0",
@@ -28,6 +28,6 @@
     "tempy": "3.0.0",
     "updates": "14.1.0",
     "versions": "11.0.0",
-    "vitest": "0.31.0"
+    "vitest": "0.31.1"
   }
 }
