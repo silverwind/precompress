@@ -3,7 +3,7 @@ import minimist from "minimist";
 import pMap from "p-map";
 import {rrdir} from "rrdir";
 import {constants, gzip, brotliCompress} from "node:zlib";
-import {cpus} from "node:os";
+import os from "node:os";
 import {argv, exit, versions} from "node:process";
 import {promisify} from "node:util";
 import {stat, readFile, writeFile, realpath} from "node:fs/promises";
@@ -14,7 +14,7 @@ import supportsColor from "supports-color";
 import {green, magenta, cyan, red, yellow, disableColor} from "glowie";
 
 const alwaysExclude = ["gz", "br"];
-const numCores = cpus().length;
+const numCores = os.availableParallelism?.() ?? os.cpus().length ?? 4;
 
 // raise libuv threadpool over default 4 when more cores are available
 if (versions?.uv && numCores > 4) {
