@@ -11,7 +11,7 @@ import {extname} from "node:path";
 import {isBinaryFileSync} from "isbinaryfile";
 import {readFileSync} from "node:fs";
 import supportsColor from "supports-color";
-import {green, magenta, cyan, red, yellow, disableColor} from "glowie";
+import {green, magenta, red, yellow, disableColor} from "glowie";
 
 const alwaysExclude = ["gz", "br"];
 const numCores = os.availableParallelism?.() ?? os.cpus().length ?? 4;
@@ -104,11 +104,11 @@ function reductionText(data, newData) {
   const change = (((newData.byteLength / data.byteLength) * 100)).toPrecision(3);
 
   if (change <= 80) {
-    return `(${green(change)}%)`;
-  } else if (change <= 100) {
-    return `(${yellow(change)}%)`;
+    return `(${green(`${change}%`)} size)`;
+  } else if (change < 100) {
+    return `(${yellow(`${change}%`)} size)`;
   } else {
-    return `(${red(change)}%)`;
+    return `(${red(`${change}%`)} size)`;
   }
 }
 
@@ -203,12 +203,12 @@ async function main() {
   const filesText = `${files.length} file${files.length > 1 ? "s" : ""}`;
 
   if (!files.length) throw new Error(`No matching files found`);
-  if (!args.silent) console.info(`${cyan(`precompress ${version}`)} ${green(`compressing ${filesText}...`)}`);
+  if (!args.silent) console.info(`precompress ${version} compressing ${filesText}...`);
 
   const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, numCores);
   await pMap(files, compress, {concurrency});
   if (start) console.info(green(
-    `✓ done in ${Math.round(performance.now() - start)}ms`,
+    `✓ ${filesText} done in ${Math.round(performance.now() - start)}ms`,
   ));
 }
 
