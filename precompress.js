@@ -124,7 +124,7 @@ const brotliEncode = types.includes("br") && ((data, path) => promisify(brotliCo
 }));
 
 function argToArray(arg) {
-  if (typeof arg === "boolean") return [];
+  if (typeof arg === "boolean" || !arg) return [];
   return (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
 }
 
@@ -174,16 +174,19 @@ async function compress(file) {
   }
 }
 
-const extGlob = ext => `**/*.${ext}`;
-
 async function main() {
   const start = args.silent ? null : performance.now();
+
+  const includeExts = new Set(Array.from(argToArray(args.include), ext => `.${ext}`));
+
+  const excludeExts = new Set([
+    ...alwaysExclude,
+    ...argToArray(args.exclude),
+  ].map(ext => `.${ext}`));
+
   const rrdirOpts = {
-    include: args.include ? argToArray(args.include).map(extGlob) : null,
-    exclude: [
-      ...alwaysExclude,
-      ...(args.exclude ? argToArray(args.exclude) : [])
-    ].map(extGlob),
+    include: includeExts.size ? Array.from(includeExts, ext => `**/*${ext}`) : null,
+    exclude: excludeExts.size ? Array.from(excludeExts, ext => `**/*${ext}`) : null,
     followSymlinks: args.follow,
     insensitive: !args.sensitive,
   };
@@ -196,7 +199,20 @@ async function main() {
         if (!entry.directory) files.push(entry.path);
       }
     } else {
-      files.push(args.follow ? await realpath(file) : file);
+      let include;
+      const ext = extname(file);
+      if (ext) {
+        if (includeExts.size) {
+          include = !excludeExts.has(ext);
+        } else {
+          include = includeExts.has(ext);
+        }
+      } else {
+        include = true;
+      }
+      if (include) {
+        files.push(args.follow ? await realpath(file) : file);
+      }
     }
   }
 
