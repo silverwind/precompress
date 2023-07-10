@@ -1,7 +1,7 @@
 {
   "name": "precompress",
   "version": "11.2.2",
-  "description": "Generate pre-compressed .gz and .br files for static web servers",
+  "description": "CLI to compress files to gzip and brotli",
   "author": "silverwind <me@silverwind.io>",
   "repository": "silverwind/precompress",
   "license": "BSD-2-Clause",

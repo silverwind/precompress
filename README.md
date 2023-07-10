@@ -1,17 +1,15 @@
 # precompress
 [![](https://img.shields.io/npm/v/precompress.svg?style=flat)](https://www.npmjs.org/package/precompress) [![](https://img.shields.io/npm/dm/precompress.svg)](https://www.npmjs.org/package/precompress) [![](https://packagephobia.com/badge?p=precompress)](https://packagephobia.com/result?p=precompress)
 
-> Generate pre-compressed .gz and .br files for static web servers
-
-Compresses files for use with web servers like nginx with the `gzip_static` and `brotli_static` directives. Files are compressed in parallel, using the available CPU cores efficiently. Existing output files will always be overridden.
+CLI to compress files to gzip and brotli. Files are efficiently compressed in parallel. Existing output files will always be overridden.
 
 ## Usage
 ```bash
 # compress all files in the "build" directory
-npx precompress ./build
+npx precompress build
 
 # same with bun
-bunx precompress ./build
+bunx precompress build
 ```
 
 ## Options
