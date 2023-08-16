@@ -4,7 +4,7 @@ import {temporaryDirectory} from "tempy";
 import {fileURLToPath} from "node:url";
 import {writeFileSync, readFileSync, mkdirSync, statSync} from "node:fs";
 import {join, relative} from "node:path";
-import {globSync} from "glob";
+import fastGlob from "fast-glob";
 
 const testDir = temporaryDirectory();
 const script = fileURLToPath(new URL("bin/precompress.js", import.meta.url));
@@ -31,7 +31,7 @@ async function run(args) {
 function makeTest(args) {
   return async () => {
     await run(args);
-    const paths = globSync(`${testDir}/**/*`.replace("\\", "/")).sort()
+    const paths = fastGlob.sync(`${testDir}/**/*`).sort()
       .map(p => relative(testDir, p))
       .filter(p => !statSync(join(testDir, p)).isDirectory());
     expect(paths).toMatchSnapshot();
