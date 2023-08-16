@@ -31,7 +31,7 @@ async function run(args) {
 function makeTest(args) {
   return async () => {
     await run(args);
-    const paths = globSync(`${testDir}/**/*`).sort()
+    const paths = globSync(`${testDir}/**/*`.replace("\\", "/")).sort()
       .map(p => relative(testDir, p))
       .filter(p => !statSync(join(testDir, p)).isDirectory());
     expect(paths).toMatchSnapshot();
