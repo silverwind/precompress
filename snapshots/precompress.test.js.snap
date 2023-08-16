@@ -4,9 +4,15 @@ exports[`exclude #2 1`] = `
 [
   "already.gz",
   "image.png",
+  "index.css",
+  "index.css.br",
+  "index.css.gz",
   "index.html",
   "index.html.br",
   "index.html.gz",
+  "index.js",
+  "index.js.br",
+  "index.js.gz",
 ]
 `;
 
@@ -16,7 +22,13 @@ exports[`exclude #3 1`] = `
   "image.png",
   "image.png.br",
   "image.png.gz",
+  "index.css",
+  "index.css.br",
+  "index.css.gz",
   "index.html",
+  "index.js",
+  "index.js.br",
+  "index.js.gz",
 ]
 `;
 
@@ -26,9 +38,15 @@ exports[`exclude #4 1`] = `
   "image.png",
   "image.png.br",
   "image.png.gz",
+  "index.css",
+  "index.css.br",
+  "index.css.gz",
   "index.html",
   "index.html.br",
   "index.html.gz",
+  "index.js",
+  "index.js.br",
+  "index.js.gz",
 ]
 `;
 
@@ -36,9 +54,15 @@ exports[`exclude 1`] = `
 [
   "already.gz",
   "image.png",
+  "index.css",
+  "index.css.br",
+  "index.css.gz",
   "index.html",
   "index.html.br",
   "index.html.gz",
+  "index.js",
+  "index.js.br",
+  "index.js.gz",
 ]
 `;
 
@@ -46,9 +70,11 @@ exports[`include #2 1`] = `
 [
   "already.gz",
   "image.png",
+  "index.css",
   "index.html",
   "index.html.br",
   "index.html.gz",
+  "index.js",
 ]
 `;
 
@@ -56,9 +82,11 @@ exports[`include 1`] = `
 [
   "already.gz",
   "image.png",
+  "index.css",
   "index.html",
   "index.html.br",
   "index.html.gz",
+  "index.js",
 ]
 `;
 
@@ -68,22 +96,33 @@ exports[`mtime 1`] = `
   "image.png",
   "image.png.br",
   "image.png.gz",
+  "index.css",
+  "index.css.br",
+  "index.css.gz",
   "index.html",
   "index.html.br",
   "index.html.gz",
+  "index.js",
+  "index.js.br",
+  "index.js.gz",
 ]
 `;
 
 exports[`outdir 1`] = `
 [
   "already.gz",
-  "dist",
   "dist/image.png.br",
   "dist/image.png.gz",
+  "dist/index.css.br",
+  "dist/index.css.gz",
   "dist/index.html.br",
   "dist/index.html.gz",
+  "dist/index.js.br",
+  "dist/index.js.gz",
   "image.png",
+  "index.css",
   "index.html",
+  "index.js",
 ]
 `;
 
@@ -93,8 +132,14 @@ exports[`simple 1`] = `
   "image.png",
   "image.png.br",
   "image.png.gz",
+  "index.css",
+  "index.css.br",
+  "index.css.gz",
   "index.html",
   "index.html.br",
   "index.html.gz",
+  "index.js",
+  "index.js.br",
+  "index.js.gz",
 ]
 `;

@@ -2,7 +2,7 @@ import {deleteSync} from "del";
 import {execa} from "execa";
 import {temporaryDirectory} from "tempy";
 import {fileURLToPath} from "node:url";
-import {writeFileSync, readFileSync} from "node:fs";
+import {writeFileSync, readFileSync, mkdirSync, statSync} from "node:fs";
 import {join, relative} from "node:path";
 import {globSync} from "glob";
 
@@ -14,6 +14,9 @@ beforeEach(() => {
   writeFileSync(join(testDir, "index.html"), (new Array(1e4)).join("index"));
   writeFileSync(join(testDir, "already.gz"), (new Array(1e4)).join("index"));
   writeFileSync(join(testDir, "image.png"), (new Array(1e4)).join("image"));
+  mkdirSync(join(testDir, "src"));
+  writeFileSync(join(testDir, "index.js"), (new Array(1e4)).join("index"));
+  writeFileSync(join(testDir, "index.css"), (new Array(1e4)).join("index"));
 });
 
 afterAll(() => {
@@ -28,7 +31,9 @@ async function run(args) {
 function makeTest(args) {
   return async () => {
     await run(args);
-    const paths = globSync(`${testDir}/**/*`).sort().map(p => relative(testDir, p));
+    const paths = globSync(`${testDir}/**/*`).sort()
+      .map(p => relative(testDir, p))
+      .filter(p => !statSync(join(testDir, p)).isDirectory());
     expect(paths).toMatchSnapshot();
   };
 }
@@ -50,7 +55,7 @@ test("exclude #4", makeTest("-e ''"));
 test("mtime", makeTest("-m"));
 test("outdir", makeTest(`-o ${testDir}/dist`));
 
-test("error", async () => {
-  await expect(run("-e png,html")).rejects.toThrow();
+test("no matching files", async () => {
+  await expect(run("-e png,html,js,css")).rejects.toThrow();
   await expect(run("-i HTML -S")).rejects.toThrow();
 });
