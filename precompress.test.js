@@ -2,8 +2,9 @@ import {deleteSync} from "del";
 import {execa} from "execa";
 import {temporaryDirectory} from "tempy";
 import {fileURLToPath} from "node:url";
-import {writeFileSync, readdirSync, readFileSync} from "node:fs";
-import {join} from "node:path";
+import {writeFileSync, readFileSync} from "node:fs";
+import {join, relative} from "node:path";
+import {globSync} from "glob";
 
 const testDir = temporaryDirectory();
 const script = fileURLToPath(new URL("bin/precompress.js", import.meta.url));
@@ -24,10 +25,11 @@ async function run(args) {
   return execa(script, argsArr, {cwd: testDir});
 }
 
-function makeTest(args, expected) {
+function makeTest(args) {
   return async () => {
     await run(args);
-    expect(readdirSync(testDir).sort()).toEqual(expected.sort());
+    const paths = globSync(`${testDir}/**/*`).sort().map(p => relative(testDir, p));
+    expect(paths).toMatchSnapshot();
   };
 }
 
@@ -38,75 +40,15 @@ test("version", async () => {
   expect(exitCode).toEqual(0);
 });
 
-test("simple", makeTest("", [
-  "already.gz",
-  "index.html",
-  "index.html.br",
-  "index.html.gz",
-  "image.png",
-  "image.png.br",
-  "image.png.gz",
-]));
-
-test("include", makeTest("-i html,foo", [
-  "already.gz",
-  "index.html",
-  "index.html.br",
-  "index.html.gz",
-  "image.png",
-]));
-
-test("include #2", makeTest("-i HTML", [
-  "already.gz",
-  "index.html",
-  "index.html.br",
-  "index.html.gz",
-  "image.png",
-]));
-
-test("exclude", makeTest("-e png", [
-  "already.gz",
-  "index.html",
-  "index.html.br",
-  "index.html.gz",
-  "image.png",
-]));
-
-test("exclude #2", makeTest("-e png -e png,png", [
-  "already.gz",
-  "index.html",
-  "index.html.br",
-  "index.html.gz",
-  "image.png",
-]));
-
-test("exclude #3", makeTest("-e html", [
-  "already.gz",
-  "index.html",
-  "image.png",
-  "image.png.br",
-  "image.png.gz",
-]));
-
-test("exclude #4", makeTest("-e ''", [
-  "already.gz",
-  "index.html",
-  "index.html.br",
-  "index.html.gz",
-  "image.png",
-  "image.png.br",
-  "image.png.gz",
-]));
-
-test("mtime", makeTest("-m", [
-  "already.gz",
-  "index.html",
-  "index.html.br",
-  "index.html.gz",
-  "image.png",
-  "image.png.br",
-  "image.png.gz",
-]));
+test("simple", makeTest(""));
+test("include", makeTest("-i html,foo"));
+test("include #2", makeTest("-i HTML"));
+test("exclude", makeTest("-e png"));
+test("exclude #2", makeTest("-e png -e png,png"));
+test("exclude #3", makeTest("-e html"));
+test("exclude #4", makeTest("-e ''"));
+test("mtime", makeTest("-m"));
+test("outdir", makeTest(`-o ${testDir}/dist`));
 
 test("error", async () => {
   await expect(run("-e png,html")).rejects.toThrow();

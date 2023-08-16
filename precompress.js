@@ -6,8 +6,8 @@ import {constants, gzip, brotliCompress} from "node:zlib";
 import os from "node:os";
 import {argv, exit, versions} from "node:process";
 import {promisify} from "node:util";
-import {stat, readFile, writeFile, realpath} from "node:fs/promises";
-import {extname} from "node:path";
+import {stat, readFile, writeFile, realpath, mkdir} from "node:fs/promises";
+import {extname, relative, join, dirname} from "node:path";
 import {isBinaryFileSync} from "isbinaryfile";
 import {readFileSync} from "node:fs";
 import supportsColor from "supports-color";
@@ -32,6 +32,8 @@ const args = minimist(argv.slice(2), {
     "V", "verbose",
   ],
   string: [
+    "b", "basedir",
+    "o", "outdir",
     "t", "types",
     "_"
   ],
@@ -39,10 +41,12 @@ const args = minimist(argv.slice(2), {
     "c", "concurrency",
   ],
   alias: {
+    b: "basedir",
     c: "concurrency",
     e: "exclude",
     h: "help",
     i: "include",
+    o: "outdir",
     m: "mtime",
     s: "silent",
     S: "sensitive",
@@ -79,6 +83,8 @@ if (!args._.length || args.help) {
     -e, --exclude <ext,...>  Exclude given file extensions. Default: ${alwaysExclude}
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
+    -o, --outdir             Output directory, will preserve relative path structure
+    -b, --basedir            Base directory to derive output path, use with --outdir
     -s, --silent             Do not print anything
     -S, --sensitive          Treat include and exclude patterns case-sensitively
     -V, --verbose            Print individual file compression times
@@ -128,29 +134,35 @@ function argToArray(arg) {
   return (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
 }
 
-async function compress(file) {
+function getOutputPath(path) {
+  const outPath = args.basedir ? relative(args.basedir, path) : path;
+  return args.outdir ? join(args.outdir, outPath) : outPath;
+}
+
+async function compress(path) {
   const start = (args.silent || !args.verbose) ? null : performance.now();
 
   let skipGzip = false, skipBrotli = false;
   if (args.mtime && gzipEncode) {
     try {
-      const [statsSource, statsTarget] = await Promise.all([stat(file), stat(`${file}.gz`)]);
+      const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.gz`)]);
       if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipGzip = true;
     } catch {}
   }
   if (args.mtime && brotliEncode) {
     try {
-      const [statsSource, statsTarget] = await Promise.all([stat(file), stat(`${file}.br`)]);
+      const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.br`)]);
       if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipBrotli = true;
     } catch {}
   }
   if (skipGzip && skipBrotli) return;
 
   try {
-    const data = await readFile(file);
+    const data = await readFile(path);
     if (!skipGzip && gzipEncode) {
-      const newFile = `${file}.gz`;
+      const newFile = `${getOutputPath(path)}.gz`;
       const newData = await gzipEncode(data);
+      await mkdir(dirname(newFile), {recursive: true});
       await writeFile(newFile, newData);
 
       if (start) {
@@ -160,8 +172,9 @@ async function compress(file) {
       }
     }
     if (!skipBrotli && brotliEncode) {
-      const newFile = `${file}.br`;
-      const newData = await brotliEncode(data, file);
+      const newFile = `${getOutputPath(path)}.br`;
+      const newData = await brotliEncode(data, path);
+      await mkdir(dirname(newFile), {recursive: true});
       await writeFile(newFile, newData);
       if (start) {
         const ms = Math.round(performance.now() - start);
@@ -170,15 +183,13 @@ async function compress(file) {
       }
     }
   } catch (err) {
-    console.info(`Error on ${file}: ${err.code}`);
+    console.info(`Error on ${path}: ${err.code}`);
   }
 }
 
 async function main() {
   const start = args.silent ? null : performance.now();
-
   const includeExts = new Set(Array.from(argToArray(args.include), ext => `.${ext}`));
-
   const excludeExts = new Set([
     ...alwaysExclude,
     ...argToArray(args.exclude),

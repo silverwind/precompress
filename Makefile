@@ -10,15 +10,19 @@ deps: node_modules
 
 .PHONY: lint
 lint: node_modules
-	npx eslint --color --quiet .
+	npx eslint --color --quiet *.js
 
 .PHONY: lint-fix
 lint-fix: node_modules
-	npx eslint --color --quiet . --fix
+	npx eslint --color --quiet *.js --fix
 
 .PHONY: test
 test: lint build node_modules
 	npx vitest
+
+.PHONY: test
+test-update: lint build node_modules
+	npx vitest --update
 
 .PHONY: build
 build: $(DST)

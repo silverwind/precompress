@@ -6,10 +6,10 @@ CLI to compress files to gzip and brotli. Files are efficiently compressed in pa
 ## Usage
 ```bash
 # compress all files in the "build" directory
-npx precompress build
+npx precompress ./build
 
 # same with bun
-bunx precompress build
+bunx precompress ./build
 ```
 
 ## Options
@@ -23,6 +23,8 @@ usage: precompress [options] <files,dirs,...>
     -e, --exclude <ext,...>  Exclude given file extensions. Default: gz,br
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
+    -o, --outdir             Output directory, will preserve relative path structure
+    -b, --basedir            Base directory to derive output path, use with --outdir
     -s, --silent             Do not print anything
     -S, --sensitive          Treat include and exclude patterns case-sensitively
     -V, --verbose            Print individual file compression times

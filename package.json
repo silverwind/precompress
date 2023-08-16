@@ -19,6 +19,7 @@
     "eslint": "8.47.0",
     "eslint-config-silverwind": "74.1.1",
     "execa": "7.2.0",
+    "glob": "10.3.3",
     "glowie": "1.2.0",
     "isbinaryfile": "5.0.0",
     "minimist": "1.2.8",
