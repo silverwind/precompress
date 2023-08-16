@@ -160,26 +160,26 @@ async function compress(path) {
   try {
     const data = await readFile(path);
     if (!skipGzip && gzipEncode) {
-      const newFile = `${getOutputPath(path)}.gz`;
+      const newPath = `${getOutputPath(path)}.gz`;
       const newData = await gzipEncode(data);
-      await mkdir(dirname(newFile), {recursive: true});
-      await writeFile(newFile, newData);
+      await mkdir(dirname(newPath), {recursive: true});
+      await writeFile(newPath, newData);
 
       if (start) {
         const ms = Math.round(performance.now() - start);
         const red = reductionText(data, newData);
-        console.info(`✓ compressed ${magenta(newFile)} in ${ms}ms ${red}`);
+        console.info(`✓ compressed ${magenta(newPath)} in ${ms}ms ${red}`);
       }
     }
     if (!skipBrotli && brotliEncode) {
-      const newFile = `${getOutputPath(path)}.br`;
+      const newPath = `${getOutputPath(path)}.br`;
       const newData = await brotliEncode(data, path);
-      await mkdir(dirname(newFile), {recursive: true});
-      await writeFile(newFile, newData);
+      await mkdir(dirname(newPath), {recursive: true});
+      await writeFile(newPath, newData);
       if (start) {
         const ms = Math.round(performance.now() - start);
         const red = reductionText(data, newData);
-        console.info(`✓ compressed ${magenta(newFile)} in ${ms}ms ${red}`);
+        console.info(`✓ compressed ${magenta(newPath)} in ${ms}ms ${red}`);
       }
     }
   } catch (err) {
