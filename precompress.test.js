@@ -52,7 +52,8 @@ test("exclude #2", makeTest("-e png -e png,png"));
 test("exclude #3", makeTest("-e html"));
 test("exclude #4", makeTest("-e ''"));
 test("mtime", makeTest("-m"));
-test("outdir", makeTest(`-o ${testDir}/dist`));
+test("outdir", makeTest(`-o ${testDir}/dist`)); // TODO: path wrong
+test("outdir,extensionless", makeTest(`-o ${testDir}/dist -t gz -E`)); // TODO: include already compressed when extensionless
 
 test("no matching files", async () => {
   await expect(run("-e png,html,js,css")).rejects.toThrow();

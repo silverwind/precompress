@@ -126,6 +126,20 @@ exports[`outdir 1`] = `
 ]
 `;
 
+exports[`outdir,extensionless 1`] = `
+[
+  "already.gz",
+  "dist/image.png",
+  "dist/index.css",
+  "dist/index.html",
+  "dist/index.js",
+  "image.png",
+  "index.css",
+  "index.html",
+  "index.js",
+]
+`;
+
 exports[`simple 1`] = `
 [
   "already.gz",

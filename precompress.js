@@ -23,6 +23,7 @@ if (versions?.uv && numCores > 4) {
 
 const args = minimist(argv.slice(2), {
   boolean: [
+    "E", "extensionless",
     "f", "follow",
     "h", "help",
     "m", "mtime",
@@ -44,6 +45,7 @@ const args = minimist(argv.slice(2), {
     b: "basedir",
     c: "concurrency",
     e: "exclude",
+    E: "extensionless",
     h: "help",
     i: "include",
     o: "outdir",
@@ -85,6 +87,7 @@ if (!args._.length || args.help) {
     -f, --follow             Follow symbolic links
     -o, --outdir             Output directory, will preserve relative path structure
     -b, --basedir            Base directory to derive output path, use with --outdir
+    -E, --extensionless      Do not output a extension, use with single --type and --outdir
     -s, --silent             Do not print anything
     -S, --sensitive          Treat include and exclude patterns case-sensitively
     -V, --verbose            Print individual file compression times
@@ -134,9 +137,10 @@ function argToArray(arg) {
   return (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
 }
 
-function getOutputPath(path) {
+function getOutputPath(path, ext) {
   const outPath = args.basedir ? relative(args.basedir, path) : path;
-  return args.outdir ? join(args.outdir, outPath) : outPath;
+  const ret = args.outdir ? join(args.outdir, outPath) : outPath;
+  return args.extensionless ? ret : `${ret}${ext}`;
 }
 
 async function compress(path) {
@@ -160,7 +164,7 @@ async function compress(path) {
   try {
     const data = await readFile(path);
     if (!skipGzip && gzipEncode) {
-      const newPath = `${getOutputPath(path)}.gz`;
+      const newPath = getOutputPath(path, ".gz");
       const newData = await gzipEncode(data);
       await mkdir(dirname(newPath), {recursive: true});
       await writeFile(newPath, newData);
@@ -172,7 +176,7 @@ async function compress(path) {
       }
     }
     if (!skipBrotli && brotliEncode) {
-      const newPath = `${getOutputPath(path)}.br`;
+      const newPath = getOutputPath(path, ".br");
       const newData = await brotliEncode(data, path);
       await mkdir(dirname(newPath), {recursive: true});
       await writeFile(newPath, newData);

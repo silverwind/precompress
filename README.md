@@ -25,6 +25,7 @@ usage: precompress [options] <files,dirs,...>
     -f, --follow             Follow symbolic links
     -o, --outdir             Output directory, will preserve relative path structure
     -b, --basedir            Base directory to derive output path, use with --outdir
+    -E, --extensionless      Do not output a extension, use with single --type and --outdir
     -s, --silent             Do not print anything
     -S, --sensitive          Treat include and exclude patterns case-sensitively
     -V, --verbose            Print individual file compression times
