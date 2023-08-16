@@ -1,5 +1,19 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`delete 1`] = `
+[
+  "already.gz",
+  "image.png.br",
+  "image.png.gz",
+  "index.css.br",
+  "index.css.gz",
+  "index.html.br",
+  "index.html.gz",
+  "index.js.br",
+  "index.js.gz",
+]
+`;
+
 exports[`exclude #2 1`] = `
 [
   "already.gz",

@@ -45,6 +45,7 @@ test("version", async () => {
 });
 
 test("simple", makeTest(""));
+test("delete", makeTest("-d"));
 test("include", makeTest("-i html,foo"));
 test("include #2", makeTest("-i HTML"));
 test("exclude", makeTest("-e png"));

@@ -6,7 +6,7 @@ import {constants, gzip, brotliCompress} from "node:zlib";
 import os from "node:os";
 import {argv, exit, versions} from "node:process";
 import {promisify} from "node:util";
-import {stat, readFile, writeFile, realpath, mkdir} from "node:fs/promises";
+import {stat, readFile, writeFile, realpath, mkdir, unlink} from "node:fs/promises";
 import {extname, relative, join, dirname} from "node:path";
 import {isBinaryFileSync} from "isbinaryfile";
 import {readFileSync} from "node:fs";
@@ -23,6 +23,7 @@ if (versions?.uv && numCores > 4) {
 
 const args = minimist(argv.slice(2), {
   boolean: [
+    "d", "delete",
     "E", "extensionless",
     "f", "follow",
     "h", "help",
@@ -44,6 +45,7 @@ const args = minimist(argv.slice(2), {
   alias: {
     b: "basedir",
     c: "concurrency",
+    d: "delete",
     e: "exclude",
     E: "extensionless",
     h: "help",
@@ -85,6 +87,7 @@ if (!args._.length || args.help) {
     -e, --exclude <ext,...>  Exclude given file extensions. Default: ${alwaysExclude}
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
+    -d, --delete             Delete source file after compression
     -o, --outdir             Output directory, will preserve relative path structure
     -b, --basedir            Base directory to derive output path, use with --outdir
     -E, --extensionless      Do not output a extension, use with single --type and --outdir
@@ -168,6 +171,7 @@ async function compress(path) {
       const newData = await gzipEncode(data);
       await mkdir(dirname(newPath), {recursive: true});
       await writeFile(newPath, newData);
+      if (args.delete) await unlink(path);
 
       if (start) {
         const ms = Math.round(performance.now() - start);
@@ -180,6 +184,7 @@ async function compress(path) {
       const newData = await brotliEncode(data, path);
       await mkdir(dirname(newPath), {recursive: true});
       await writeFile(newPath, newData);
+      if (args.delete) await unlink(path);
       if (start) {
         const ms = Math.round(performance.now() - start);
         const red = reductionText(data, newData);
