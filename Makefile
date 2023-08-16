@@ -21,7 +21,7 @@ test: lint build node_modules
 	npx vitest
 
 .PHONY: test
-test-update: lint build node_modules
+test-update: build node_modules
 	npx vitest --update
 
 .PHONY: build

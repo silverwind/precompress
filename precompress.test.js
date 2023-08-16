@@ -3,7 +3,7 @@ import {execa} from "execa";
 import {temporaryDirectory} from "tempy";
 import {fileURLToPath} from "node:url";
 import {writeFileSync, readFileSync, mkdirSync, statSync} from "node:fs";
-import {join, relative} from "node:path";
+import {join} from "node:path";
 import fastGlob from "fast-glob";
 
 const testDir = temporaryDirectory();
@@ -31,8 +31,7 @@ async function run(args) {
 function makeTest(args) {
   return async () => {
     await run(args);
-    const paths = fastGlob.sync(`${testDir}/**/*`).sort()
-      .map(p => relative(testDir, p))
+    const paths = fastGlob.sync(`**/*`, {cwd: testDir}).sort()
       .filter(p => !statSync(join(testDir, p)).isDirectory());
     expect(paths).toMatchSnapshot();
   };
