@@ -126,7 +126,8 @@ function reductionText(data, newData) {
 }
 
 const types = args.types ? args.types.split(",") : ["gz", "br"];
-const gzipEncode = types.includes("gz") && (data => promisify(gzip)(data, {
+
+const gzipEncode = types.includes("gz") && ((data, _path) => promisify(gzip)(data, {
   level: constants.Z_BEST_COMPRESSION,
 }));
 const brotliEncode = types.includes("br") && ((data, path) => promisify(brotliCompress)(data, {
@@ -141,10 +142,24 @@ function argToArray(arg) {
   return (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
 }
 
-function getOutputPath(path, ext) {
+function getOutputPath(path, type) {
   const outPath = args.basedir ? relative(args.basedir, path) : path;
   const ret = args.outdir ? join(args.outdir, outPath) : outPath;
-  return args.extensionless ? ret : `${ret}${ext}`;
+  return args.extensionless ? ret : `${ret}.${type}`;
+}
+
+async function compressFile(data, path, start, type) {
+  const newPath = getOutputPath(path, type);
+  const newData = await (type === "gz" ? gzipEncode : brotliEncode)(data, path);
+  await mkdir(dirname(newPath), {recursive: true});
+  await writeFile(newPath, newData);
+  if (args.delete) await unlink(path);
+
+  if (start) {
+    const ms = Math.round(performance.now() - start);
+    const red = reductionText(data, newData);
+    console.info(`✓ compressed ${magenta(newPath)} in ${ms}ms ${red}`);
+  }
 }
 
 async function compress(path) {
@@ -154,46 +169,33 @@ async function compress(path) {
   if (args.mtime && gzipEncode) {
     try {
       const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.gz`)]);
-      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipGzip = true;
+      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) {
+        skipGzip = true;
+      }
     } catch {}
   }
   if (args.mtime && brotliEncode) {
     try {
       const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.br`)]);
-      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) skipBrotli = true;
+      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) {
+        skipBrotli = true;
+      }
     } catch {}
   }
   if (skipGzip && skipBrotli) return;
 
   try {
     const data = await readFile(path);
-    if (!skipGzip && gzipEncode) {
-      const newPath = getOutputPath(path, ".gz");
-      const newData = await gzipEncode(data);
-      await mkdir(dirname(newPath), {recursive: true});
-      await writeFile(newPath, newData);
-      if (args.delete) await unlink(path);
 
-      if (start) {
-        const ms = Math.round(performance.now() - start);
-        const red = reductionText(data, newData);
-        console.info(`✓ compressed ${magenta(newPath)} in ${ms}ms ${red}`);
-      }
+    if (!skipGzip && gzipEncode) {
+      await compressFile(data, path, start, "gz");
     }
+
     if (!skipBrotli && brotliEncode) {
-      const newPath = getOutputPath(path, ".br");
-      const newData = await brotliEncode(data, path);
-      await mkdir(dirname(newPath), {recursive: true});
-      await writeFile(newPath, newData);
-      if (args.delete) await unlink(path);
-      if (start) {
-        const ms = Math.round(performance.now() - start);
-        const red = reductionText(data, newData);
-        console.info(`✓ compressed ${magenta(newPath)} in ${ms}ms ${red}`);
-      }
+      await compressFile(data, path, start, "br");
     }
   } catch (err) {
-    console.info(`Error on ${path}: ${err.code}`);
+    console.info(`Error on ${path}: ${err.code} ${err.message}`);
   }
 }
 
