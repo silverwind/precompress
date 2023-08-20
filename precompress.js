@@ -12,8 +12,9 @@ import {isBinaryFileSync} from "isbinaryfile";
 import {readFileSync} from "node:fs";
 import supportsColor from "supports-color";
 import {green, magenta, red, yellow, disableColor} from "glowie";
+import picomatch from "picomatch";
 
-const alwaysExclude = ["gz", "br"];
+const alwaysExclude = ["**.gz", "**.br"];
 const numCores = os.availableParallelism?.() ?? os.cpus().length ?? 4;
 
 // raise libuv threadpool over default 4 when more cores are available
@@ -83,8 +84,8 @@ if (!args._.length || args.help) {
   Options:
     -t, --types <type,...>   Types of files to generate. Default: gz,br
     -c, --concurrency <num>  Number of concurrent operations. Default: auto
-    -i, --include <ext,...>  Only include given file extensions. Default: unset
-    -e, --exclude <ext,...>  Exclude given file extensions. Default: ${alwaysExclude}
+    -i, --include <ext,...>  Only include given globs. Default: unset
+    -e, --exclude <ext,...>  Exclude given globs. Default: ${alwaysExclude}
     -m, --mtime              Skip creating existing files when source file is newer
     -f, --follow             Follow symbolic links
     -d, --delete             Delete source file after compression
@@ -196,20 +197,27 @@ async function compress(path) {
   }
 }
 
+function isIncluded(path, includeMatcher, excludeMatcher) {
+  if (excludeMatcher?.(path)) return false;
+  if (!includeMatcher) return true;
+  return includeMatcher(path);
+}
+
 async function main() {
   const start = args.silent ? null : performance.now();
-  const includeExts = new Set(Array.from(argToArray(args.include), ext => `.${ext}`));
-  const excludeExts = new Set([
-    ...alwaysExclude,
-    ...argToArray(args.exclude),
-  ].map(ext => `.${ext}`));
+  const includeGlobs = new Set(argToArray(args.include));
+  const excludeGlobs = new Set([...alwaysExclude, ...argToArray(args.exclude)]);
 
   const rrdirOpts = {
-    include: includeExts.size ? Array.from(includeExts, ext => `**/*${ext}`) : null,
-    exclude: excludeExts.size ? Array.from(excludeExts, ext => `**/*${ext}`) : null,
+    include: includeGlobs.size ? Array.from(includeGlobs) : null,
+    exclude: excludeGlobs.size ? Array.from(excludeGlobs) : null,
     followSymlinks: args.follow,
     insensitive: !args.sensitive,
   };
+
+  const picoOpts = {dot: true, flags: args.sensitive ? "i" : undefined};
+  const includeMatcher = includeGlobs.size && picomatch(Array.from(includeGlobs), picoOpts);
+  const excludeMatcher = excludeGlobs.size && picomatch(Array.from(excludeGlobs), picoOpts);
 
   const files = [];
   for (const file of args._) {
@@ -219,18 +227,7 @@ async function main() {
         if (!entry.directory) files.push(entry.path);
       }
     } else {
-      let include;
-      const ext = extname(file);
-      if (ext) {
-        if (includeExts.size) {
-          include = !excludeExts.has(ext);
-        } else {
-          include = includeExts.has(ext);
-        }
-      } else {
-        include = true;
-      }
-      if (include) {
+      if (isIncluded(file, includeMatcher, excludeMatcher)) {
         files.push(args.follow ? await realpath(file) : file);
       }
     }

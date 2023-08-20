@@ -14,7 +14,7 @@ exports[`delete 1`] = `
 ]
 `;
 
-exports[`exclude #2 1`] = `
+exports[`exclude 1 1`] = `
 [
   "already.gz",
   "outer.html",
@@ -30,7 +30,23 @@ exports[`exclude #2 1`] = `
 ]
 `;
 
-exports[`exclude #3 1`] = `
+exports[`exclude 2 1`] = `
+[
+  "already.gz",
+  "outer.html",
+  "outer.html.br",
+  "outer.html.gz",
+  "outer.png",
+  "src/inner.css",
+  "src/inner.css.br",
+  "src/inner.css.gz",
+  "src/inner.js",
+  "src/inner.js.br",
+  "src/inner.js.gz",
+]
+`;
+
+exports[`exclude 3 1`] = `
 [
   "already.gz",
   "outer.html",
@@ -46,7 +62,7 @@ exports[`exclude #3 1`] = `
 ]
 `;
 
-exports[`exclude #4 1`] = `
+exports[`exclude 4 1`] = `
 [
   "already.gz",
   "outer.html",
@@ -64,23 +80,7 @@ exports[`exclude #4 1`] = `
 ]
 `;
 
-exports[`exclude 1`] = `
-[
-  "already.gz",
-  "outer.html",
-  "outer.html.br",
-  "outer.html.gz",
-  "outer.png",
-  "src/inner.css",
-  "src/inner.css.br",
-  "src/inner.css.gz",
-  "src/inner.js",
-  "src/inner.js.br",
-  "src/inner.js.gz",
-]
-`;
-
-exports[`include #2 1`] = `
+exports[`include 1 1`] = `
 [
   "already.gz",
   "outer.html",
@@ -92,7 +92,7 @@ exports[`include #2 1`] = `
 ]
 `;
 
-exports[`include 1`] = `
+exports[`include 2 1`] = `
 [
   "already.gz",
   "outer.html",

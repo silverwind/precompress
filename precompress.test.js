@@ -32,7 +32,7 @@ async function run(args) {
 function makeTest(args) {
   return async () => {
     await run(args);
-    const paths = fastGlob.sync(`**/*`, {cwd: testDir}).sort()
+    const paths = fastGlob.sync(`**`, {cwd: testDir}).sort()
       .filter(p => !statSync(join(testDir, p)).isDirectory());
     expect(paths).toMatchSnapshot();
   };
@@ -47,18 +47,21 @@ test("version", async () => {
 
 test("simple", makeTest(""));
 test("delete", makeTest("-d"));
-test("include", makeTest("-i html,foo"));
-test("include #2", makeTest("-i HTML"));
-test("exclude", makeTest("-e png"));
-test("exclude #2", makeTest("-e png -e png,png"));
-test("exclude #3", makeTest("-e html"));
-test("exclude #4", makeTest("-e ''"));
+test("include 1", makeTest("-i **.html,**.foo"));
+test("include 2", makeTest("-i **.HTML"));
+test("exclude 1", makeTest("-e **.png"));
+test("exclude 2", makeTest("-e **.png -e **.png,**.png"));
+test("exclude 3", makeTest("-e **.html"));
+test("exclude 4", makeTest("-e ''"));
 test("mtime", makeTest("-m"));
 test("outdir", makeTest(`-o ${testDir}/dist`));
 test("outdir,basedir", makeTest(`-o ${testDir}/dist -b src`));
 test("outdir,extensionless", makeTest(`-o ${testDir}/dist -t gz -E`));
 
-test("no matching files", async () => {
-  await expect(run("-e png,html,js,css")).rejects.toThrow();
+test("no matching files 1", async () => {
+  await expect(run("-e **.png,**.html -e **.js,**.css")).rejects.toThrow();
+});
+
+test("no matching files 2", async () => {
   await expect(run("-i HTML -S")).rejects.toThrow();
 });
