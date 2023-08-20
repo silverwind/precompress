@@ -11,12 +11,13 @@ const script = fileURLToPath(new URL("bin/precompress.js", import.meta.url));
 
 beforeEach(() => {
   deleteSync(join(testDir, "*"), {force: true});
-  writeFileSync(join(testDir, "index.html"), (new Array(1e4)).join("index"));
+  writeFileSync(join(testDir, "outer.html"), (new Array(1e4)).join("index"));
   writeFileSync(join(testDir, "already.gz"), (new Array(1e4)).join("index"));
-  writeFileSync(join(testDir, "image.png"), (new Array(1e4)).join("image"));
-  mkdirSync(join(testDir, "src"));
-  writeFileSync(join(testDir, "index.js"), (new Array(1e4)).join("index"));
-  writeFileSync(join(testDir, "index.css"), (new Array(1e4)).join("index"));
+  writeFileSync(join(testDir, "outer.png"), (new Array(1e4)).join("image"));
+  const srcDir = join(testDir, "src");
+  mkdirSync(srcDir);
+  writeFileSync(join(srcDir, "inner.js"), (new Array(1e4)).join("index"));
+  writeFileSync(join(srcDir, "inner.css"), (new Array(1e4)).join("index"));
 });
 
 afterAll(() => {
@@ -38,9 +39,9 @@ function makeTest(args) {
 }
 
 test("version", async () => {
-  const {version: expected} = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
+  const {version} = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
   const {stdout, exitCode} = await execa("node", [script, "-v"]);
-  expect(stdout).toEqual(expected);
+  expect(stdout).toEqual(version);
   expect(exitCode).toEqual(0);
 });
 
@@ -53,8 +54,9 @@ test("exclude #2", makeTest("-e png -e png,png"));
 test("exclude #3", makeTest("-e html"));
 test("exclude #4", makeTest("-e ''"));
 test("mtime", makeTest("-m"));
-test("outdir", makeTest(`-o ${testDir}/dist`)); // TODO: path wrong
-test("outdir,extensionless", makeTest(`-o ${testDir}/dist -t gz -E`)); // TODO: include already compressed when extensionless
+test("outdir", makeTest(`-o ${testDir}/dist`));
+test("outdir,basedir", makeTest(`-o ${testDir}/dist -b src`));
+test("outdir,extensionless", makeTest(`-o ${testDir}/dist -t gz -E`));
 
 test("no matching files", async () => {
   await expect(run("-e png,html,js,css")).rejects.toThrow();
