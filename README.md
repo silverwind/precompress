@@ -5,7 +5,7 @@ CLI to compress files to gzip and brotli. Files are efficiently compressed in pa
 
 ## Usage
 ```bash
-# compress all files in the "build" directory
+# compress all files in the "build" directory using node
 npx precompress ./build
 
 # same with bun
