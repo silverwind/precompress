@@ -82,21 +82,21 @@ if (!args._.length || args.help) {
   console.info(`usage: precompress [options] <files,dirs,...>
 
   Options:
-    -t, --types <type,...>   Types of files to generate. Default: gz,br
-    -c, --concurrency <num>  Number of concurrent operations. Default: auto
-    -i, --include <ext,...>  Only include given globs. Default: unset
-    -e, --exclude <ext,...>  Exclude given globs. Default: ${alwaysExclude}
-    -m, --mtime              Skip creating existing files when source file is newer
-    -f, --follow             Follow symbolic links
-    -d, --delete             Delete source file after compression
-    -o, --outdir             Output directory, will preserve relative path structure
-    -b, --basedir            Base directory to derive output path, use with --outdir
-    -E, --extensionless      Do not output a extension, use with single --type and --outdir
-    -s, --silent             Do not print anything
-    -S, --sensitive          Treat include and exclude patterns case-sensitively
-    -V, --verbose            Print individual file compression times
-    -h, --help               Show this text
-    -v, --version            Show the version
+    -t, --types <type,...>    Types of files to generate. Default: gz,br
+    -i, --include <glob,...>  Only include given globs. Default: unset
+    -e, --exclude <glob,...>  Exclude given globs. Default: ${alwaysExclude}
+    -m, --mtime               Skip creating existing files when source file is newer
+    -f, --follow              Follow symbolic links
+    -d, --delete              Delete source file after compression
+    -o, --outdir              Output directory, will preserve relative path structure
+    -b, --basedir             Base directory to derive output path, use with --outdir
+    -E, --extensionless       Do not output a extension, use with single --type and --outdir
+    -s, --silent              Do not print anything
+    -S, --sensitive           Treat include and exclude patterns case-sensitively
+    -c, --concurrency <num>   Number of concurrent operations. Default: auto
+    -V, --verbose             Print individual file compression times
+    -h, --help                Show this text
+    -v, --version             Show the version
 
   Examples:
     $ precompress ./build`);
