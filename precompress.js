@@ -225,7 +225,7 @@ async function main() {
   for (const file of args._) {
     const stats = await stat(file);
     if (stats.isDirectory()) {
-      for await (const entry of rrdir(file, rrdirOpts)) {
+      for await (const entry of rrdir(await realpath(file), rrdirOpts)) {
         if (!entry.directory) files.push(entry.path);
       }
     } else {
