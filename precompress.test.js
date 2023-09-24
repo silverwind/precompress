@@ -1,27 +1,26 @@
-import {deleteSync} from "del";
 import {execa} from "execa";
-import {temporaryDirectory} from "tempy";
 import {fileURLToPath} from "node:url";
-import {writeFileSync, readFileSync, mkdirSync, statSync} from "node:fs";
+import {writeFileSync, readFileSync, mkdirSync, statSync, mkdtempSync, rmSync} from "node:fs";
 import {join} from "node:path";
 import fastGlob from "fast-glob";
+import {tmpdir} from "node:os";
 
-const testDir = temporaryDirectory();
+const testDir = mkdtempSync(join(tmpdir(), "precompress-"));
 const script = fileURLToPath(new URL("bin/precompress.js", import.meta.url));
 
 beforeEach(() => {
-  deleteSync(join(testDir, "*"), {force: true});
+  rmSync(testDir, {recursive: true, force: true});
+  const srcDir = join(testDir, "src");
+  mkdirSync(srcDir, {recursive: true});
   writeFileSync(join(testDir, "outer.html"), (new Array(1e4)).join("index"));
   writeFileSync(join(testDir, "already.gz"), (new Array(1e4)).join("index"));
   writeFileSync(join(testDir, "outer.png"), (new Array(1e4)).join("image"));
-  const srcDir = join(testDir, "src");
-  mkdirSync(srcDir);
   writeFileSync(join(srcDir, "inner.js"), (new Array(1e4)).join("index"));
   writeFileSync(join(srcDir, "inner.css"), (new Array(1e4)).join("index"));
 });
 
 afterAll(() => {
-  deleteSync(testDir, {force: true});
+  rmSync(testDir, {recursive: true, force: true});
 });
 
 async function run(args) {
