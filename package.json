@@ -14,10 +14,10 @@
     "bin/precompress.js"
   ],
   "devDependencies": {
-    "del": "7.0.0",
-    "esbuild": "0.19.2",
-    "eslint": "8.47.0",
-    "eslint-config-silverwind": "74.1.2",
+    "del": "7.1.0",
+    "esbuild": "0.19.3",
+    "eslint": "8.50.0",
+    "eslint-config-silverwind": "76.0.1",
     "execa": "8.0.1",
     "fast-glob": "3.3.1",
     "glowie": "1.2.0",
@@ -25,12 +25,12 @@
     "minimist": "1.2.8",
     "p-map": "6.0.0",
     "picomatch": "2.3.1",
-    "rrdir": "12.0.1",
+    "rrdir": "12.0.2",
     "supports-color": "9.4.0",
     "tempy": "3.1.0",
-    "updates": "14.3.5",
-    "versions": "11.0.2",
-    "vitest": "0.34.2",
+    "updates": "15.0.2",
+    "versions": "11.1.0",
+    "vitest": "0.34.5",
     "vitest-config-silverwind": "3.0.0"
   }
 }
