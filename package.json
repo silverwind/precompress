@@ -11,7 +11,7 @@
     "node": ">=18"
   },
   "files": [
-    "bin/precompress.js"
+    "./bin/precompress.js"
   ],
   "devDependencies": {
     "esbuild": "0.19.3",
