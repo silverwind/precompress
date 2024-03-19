@@ -6,12 +6,12 @@
   "repository": "silverwind/precompress",
   "license": "BSD-2-Clause",
   "type": "module",
-  "bin": "./bin/precompress.js",
+  "bin": "./dist/precompress.js",
   "engines": {
     "node": ">=18"
   },
   "files": [
-    "./bin/precompress.js"
+    "dist/precompress.js"
   ],
   "devDependencies": {
     "esbuild": "0.20.2",

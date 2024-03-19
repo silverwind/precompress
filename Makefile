@@ -1,5 +1,5 @@
 SRC := precompress.js
-DST := bin/precompress.js
+DST := dist/precompress.js
 
 node_modules: package-lock.json
 	npm install --no-save
