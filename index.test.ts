@@ -6,7 +6,7 @@ import fastGlob from "fast-glob";
 import {tmpdir} from "node:os";
 
 const testDir = mkdtempSync(join(tmpdir(), "precompress-"));
-const script = fileURLToPath(new URL("dist/precompress.js", import.meta.url));
+const script = fileURLToPath(new URL("dist/index.js", import.meta.url));
 
 beforeEach(() => {
   rmSync(testDir, {recursive: true, force: true});
@@ -23,12 +23,12 @@ afterAll(() => {
   rmSync(testDir, {recursive: true, force: true});
 });
 
-async function run(args) {
+async function run(args: string) {
   const argsArr = [".", ...args.split(/\s+/).map(s => s.trim()).filter(Boolean)];
   return execa(script, argsArr, {cwd: testDir});
 }
 
-function makeTest(args) {
+function makeTest(args: string) {
   return async () => {
     await run(args);
     const paths = fastGlob.sync(`**`, {cwd: testDir}).sort()

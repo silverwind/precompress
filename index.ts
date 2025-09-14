@@ -9,11 +9,12 @@ import {promisify} from "node:util";
 import {stat, readFile, writeFile, realpath, mkdir, unlink} from "node:fs/promises";
 import {extname, relative, join, dirname} from "node:path";
 import {isBinaryFileSync} from "isbinaryfile";
-import {readFileSync} from "node:fs";
 import supportsColor from "supports-color";
 import {green, magenta, red, yellow, disableColor} from "glowie";
 import picomatch from "picomatch";
+import pkg from "./package.json" with {type: "json"};
 
+const packageVersion = pkg.version || "0.0.0";
 const alwaysExclude = ["**.gz", "**.br"];
 const numCores = os.availableParallelism?.() ?? os.cpus().length ?? 4;
 
@@ -40,6 +41,7 @@ const args = minimist(argv.slice(2), {
     "t", "types",
     "_"
   ],
+  // @ts-expect-error
   number: [
     "c", "concurrency",
   ],
@@ -63,18 +65,13 @@ const args = minimist(argv.slice(2), {
 
 if (!supportsColor.stdout) disableColor();
 
-function finish(err) {
+function finish(err: Error | void) {
   if (err) console.error(err.stack || err.message || err);
   exit(err ? 1 : 0);
 }
 
-let version = import.meta.VERSION;
-if (!version) {
-  version = JSON.parse(readFileSync(new URL("package.json", import.meta.url))).version;
-}
-
 if (args.version) {
-  console.info(import.meta.VERSION);
+  console.info(packageVersion);
   finish();
 }
 
@@ -103,7 +100,7 @@ if (!args._.length || args.help) {
   finish();
 }
 
-function getBrotliMode(data, path) {
+function getBrotliMode(data: Buffer, path: string) {
   if (extname(path).toLowerCase() === ".woff2") {
     return constants.BROTLI_MODE_FONT;
   } else if (isBinaryFileSync(data)) {
@@ -113,42 +110,42 @@ function getBrotliMode(data, path) {
   }
 }
 
-function reductionText(data, newData) {
-  const change = (((newData.byteLength / data.byteLength) * 100)).toPrecision(3);
+function reductionText(data: Buffer, newData: Buffer) {
+  const change = (((newData.byteLength / data.byteLength) * 100));
 
   if (change <= 80) {
-    return `(${green(`${change}%`)} size)`;
+    return `(${green(`${change.toPrecision(3)}%`)} size)`;
   } else if (change < 100) {
-    return `(${yellow(`${change}%`)} size)`;
+    return `(${yellow(`${change.toPrecision(3)}%`)} size)`;
   } else {
-    return `(${red(`${change}%`)} size)`;
+    return `(${red(`${change.toPrecision(3)}%`)} size)`;
   }
 }
 
 const types = args.types ? args.types.split(",") : ["gz", "br"];
 
-const gzipEncode = types.includes("gz") && ((data, _path) => promisify(gzip)(data, {
+const gzipEncode = types.includes("gz") && ((data: Buffer, _path: string) => promisify(gzip)(data, {
   level: constants.Z_BEST_COMPRESSION,
 }));
-const brotliEncode = types.includes("br") && ((data, path) => promisify(brotliCompress)(data, {
+const brotliEncode = types.includes("br") && ((data: Buffer, path: string) => promisify(brotliCompress)(data, {
   params: {
     [constants.BROTLI_PARAM_MODE]: getBrotliMode(data, path),
     [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
   }
 }));
 
-function argToArray(arg) {
+function argToArray(arg: boolean | Array<string>) {
   if (typeof arg === "boolean" || !arg) return [];
   return (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
 }
 
-function getOutputPath(path, type) {
+function getOutputPath(path: string, type: string) {
   const outPath = args.basedir ? relative(args.basedir, path) : path;
   const ret = args.outdir ? join(args.outdir, outPath) : outPath;
   return args.extensionless ? ret : `${ret}.${type}`;
 }
 
-async function compressFile(data, path, start, type) {
+async function compressFile(data: Buffer, path: string, start: number, type: string) {
   const newPath = getOutputPath(path, type);
   const newData = await (type === "gz" ? gzipEncode : brotliEncode)(data, path);
   await mkdir(dirname(newPath), {recursive: true});
@@ -162,7 +159,7 @@ async function compressFile(data, path, start, type) {
   }
 }
 
-async function compress(path) {
+async function compress(path: string) {
   const start = (args.silent || !args.verbose) ? null : performance.now();
 
   let skipGzip = false, skipBrotli = false;
@@ -199,7 +196,7 @@ async function compress(path) {
   }
 }
 
-function isIncluded(path, includeMatcher, excludeMatcher) {
+function isIncluded(path: string, includeMatcher: (path: string) => boolean, excludeMatcher: (path: string) => boolean) {
   if (excludeMatcher?.(path)) return false;
   if (!includeMatcher) return true;
   return includeMatcher(path);
@@ -238,7 +235,7 @@ async function main() {
   const filesText = `${files.length} file${files.length > 1 ? "s" : ""}`;
 
   if (!files.length) throw new Error(`No matching files found`);
-  if (!args.silent) console.info(`precompress ${version} compressing ${filesText}...`);
+  if (!args.silent) console.info(`precompress ${packageVersion} compressing ${filesText}...`);
 
   const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, numCores);
   await pMap(files, compress, {concurrency});
