@@ -1,7 +1,7 @@
 {
   "name": "precompress",
   "version": "13.0.0",
-  "description": "CLI to compress files to gzip and brotli",
+  "description": "CLI to compress files to gzip, brotli, zst",
   "author": "silverwind <me@silverwind.io>",
   "repository": "silverwind/precompress",
   "license": "BSD-2-Clause",
