@@ -1,7 +1,7 @@
 # precompress
 [![](https://img.shields.io/npm/v/precompress.svg?style=flat)](https://www.npmjs.org/package/precompress) [![](https://img.shields.io/npm/dm/precompress.svg)](https://www.npmjs.org/package/precompress) [![](https://packagephobia.com/badge?p=precompress)](https://packagephobia.com/result?p=precompress)
 
-CLI to compress files to gzip and brotli. Files are efficiently compressed in parallel. Existing output files will always be overridden.
+CLI to compress files to gzip, brotli and zstd. Files are efficiently compressed in parallel. Existing output files will always be overridden.
 
 ## Usage
 ```bash
@@ -17,7 +17,7 @@ bunx precompress ./build
 usage: precompress [options] <files,dirs,...>
 
   Options:
-    -t, --types <type,...>    Types of files to generate. Default: gz,br
+    -t, --types <type,...>    Types of files to generate. Default: gz,br,zst
     -i, --include <glob,...>  Only include given globs. Default: unset
     -e, --exclude <glob,...>  Exclude given globs. Default: **.gz,**.br
     -m, --mtime               Skip creating existing files when source file is newer

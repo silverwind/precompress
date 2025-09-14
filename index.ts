@@ -2,7 +2,7 @@
 import minimist from "minimist";
 import pMap from "p-map";
 import {rrdir} from "rrdir";
-import {constants, gzip, brotliCompress} from "node:zlib";
+import {constants, gzip, brotliCompress, zstdCompress} from "node:zlib";
 import os from "node:os";
 import {argv, exit, versions} from "node:process";
 import {promisify} from "node:util";
@@ -15,7 +15,7 @@ import picomatch from "picomatch";
 import pkg from "./package.json" with {type: "json"};
 
 const packageVersion = pkg.version || "0.0.0";
-const alwaysExclude = ["**.gz", "**.br"];
+const alwaysExclude = ["**.gz", "**.br", "**.zst"];
 const numCores = os.availableParallelism?.() ?? os.cpus().length ?? 4;
 
 // raise libuv threadpool over default 4 when more cores are available
@@ -79,7 +79,7 @@ if (!args._.length || args.help) {
   console.info(`usage: precompress [options] <files,dirs,...>
 
   Options:
-    -t, --types <type,...>    Types of files to generate. Default: gz,br
+    -t, --types <type,...>    Types of files to generate. Default: gz,br,zst
     -i, --include <glob,...>  Only include given globs. Default: unset
     -e, --exclude <glob,...>  Exclude given globs. Default: ${alwaysExclude}
     -m, --mtime               Skip creating existing files when source file is newer
@@ -100,13 +100,26 @@ if (!args._.length || args.help) {
   finish();
 }
 
+const {
+  Z_BEST_COMPRESSION,
+  BROTLI_PARAM_QUALITY,
+  BROTLI_MAX_QUALITY,
+  BROTLI_PARAM_MODE,
+  BROTLI_MODE_FONT,
+  BROTLI_MODE_GENERIC,
+  BROTLI_MODE_TEXT,
+  ZSTD_c_strategy,
+  ZSTD_btultra2,
+} = constants;
+
+
 function getBrotliMode(data: Buffer, path: string) {
   if (extname(path).toLowerCase() === ".woff2") {
-    return constants.BROTLI_MODE_FONT;
+    return BROTLI_MODE_FONT;
   } else if (isBinaryFileSync(data)) {
-    return constants.BROTLI_MODE_GENERIC;
+    return BROTLI_MODE_GENERIC;
   } else {
-    return constants.BROTLI_MODE_TEXT;
+    return BROTLI_MODE_TEXT;
   }
 }
 
@@ -122,15 +135,20 @@ function reductionText(data: Buffer, newData: Buffer) {
   }
 }
 
-const types = args.types ? args.types.split(",") : ["gz", "br"];
+const types = args.types ? args.types.split(",") : ["gz", "br", "zst"];
 
-const gzipEncode = types.includes("gz") && ((data: Buffer, _path: string) => promisify(gzip)(data, {
-  level: constants.Z_BEST_COMPRESSION,
+const gzipEncode = types.includes("gz") && ((data: Buffer) => promisify(gzip)(data, {
+  level: Z_BEST_COMPRESSION,
 }));
 const brotliEncode = types.includes("br") && ((data: Buffer, path: string) => promisify(brotliCompress)(data, {
   params: {
-    [constants.BROTLI_PARAM_MODE]: getBrotliMode(data, path),
-    [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
+    [BROTLI_PARAM_MODE]: getBrotliMode(data, path),
+    [BROTLI_PARAM_QUALITY]: BROTLI_MAX_QUALITY,
+  }
+}));
+const zstdEncode = types.includes("zst") && ((data: Buffer) => promisify(zstdCompress)(data, {
+  params: {
+    [ZSTD_c_strategy]: ZSTD_btultra2,
   }
 }));
 
@@ -147,7 +165,14 @@ function getOutputPath(path: string, type: string) {
 
 async function compressFile(data: Buffer, path: string, start: number, type: string) {
   const newPath = getOutputPath(path, type);
-  const newData = await (type === "gz" ? gzipEncode : brotliEncode)(data, path);
+  let newData: Buffer;
+  if (type === "gz") {
+    newData = await gzipEncode(data);
+  } else if (type === "br") {
+    newData = await brotliEncode(data, path);
+  } else if (type === "zst") {
+    newData = await zstdEncode(data);
+  }
   await mkdir(dirname(newPath), {recursive: true});
   await writeFile(newPath, newData);
   if (args.delete) await unlink(path);
@@ -162,7 +187,10 @@ async function compressFile(data: Buffer, path: string, start: number, type: str
 async function compress(path: string) {
   const start = (args.silent || !args.verbose) ? null : performance.now();
 
-  let skipGzip = false, skipBrotli = false;
+  let skipGzip = false;
+  let skipBrotli = false;
+  let skipZstd = false;
+
   if (args.mtime && gzipEncode) {
     try {
       const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.gz`)]);
@@ -179,18 +207,22 @@ async function compress(path: string) {
       }
     } catch {}
   }
-  if (skipGzip && skipBrotli) return;
+  if (args.mtime && zstdEncode) {
+    try {
+      const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.zst`)]);
+      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) {
+        skipZstd = true;
+      }
+    } catch {}
+  }
+  if (skipGzip && skipBrotli && skipZstd) return;
 
   try {
     const data = await readFile(path);
 
-    if (!skipGzip && gzipEncode) {
-      await compressFile(data, path, start, "gz");
-    }
-
-    if (!skipBrotli && brotliEncode) {
-      await compressFile(data, path, start, "br");
-    }
+    if (!skipGzip && gzipEncode) await compressFile(data, path, start, "gz");
+    if (!skipBrotli && brotliEncode) await compressFile(data, path, start, "br");
+    if (!skipZstd && zstdEncode) await compressFile(data, path, start, "zst");
   } catch (err) {
     console.info(`Error on ${path}: ${err.code} ${err.message}`);
   }
