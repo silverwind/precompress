@@ -3,8 +3,8 @@ import minimist from "minimist";
 import pMap from "p-map";
 import {rrdir} from "rrdir";
 import {constants, gzip, brotliCompress, zstdCompress} from "node:zlib";
-import os from "node:os";
-import {argv, exit, versions} from "node:process";
+import {availableParallelism, cpus} from "node:os";
+import {argv, exit, versions, env} from "node:process";
 import {promisify} from "node:util";
 import {stat, readFile, writeFile, realpath, mkdir, unlink} from "node:fs/promises";
 import {extname, relative, join, dirname} from "node:path";
@@ -16,11 +16,11 @@ import pkg from "./package.json" with {type: "json"};
 
 const packageVersion = pkg.version || "0.0.0";
 const alwaysExclude = ["**.gz", "**.br", "**.zst"];
-const numCores = os.availableParallelism?.() ?? os.cpus().length ?? 4;
+const numCores = availableParallelism?.() ?? cpus().length ?? 4;
 
 // raise libuv threadpool over default 4 when more cores are available
 if (versions?.uv && numCores > 4) {
-  process.env.UV_THREADPOOL_SIZE = String(numCores);
+  env.UV_THREADPOOL_SIZE = String(numCores);
 }
 
 const args = minimist(argv.slice(2), {
