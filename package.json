@@ -28,13 +28,12 @@
     "picomatch": "4.0.3",
     "rrdir": "13.2.2",
     "supports-color": "10.2.2",
+    "tsdown": "0.15.5",
+    "tsdown-config-silverwind": "1.4.0",
     "typescript": "5.9.2",
     "typescript-config-silverwind": "10.0.1",
     "updates": "16.7.2",
     "versions": "13.1.1",
-    "vite": "7.1.5",
-    "vite-config-silverwind": "5.5.0",
-    "vite-plugin-dts": "4.5.4",
     "vitest": "3.2.4",
     "vitest-config-silverwind": "10.2.0"
   }
