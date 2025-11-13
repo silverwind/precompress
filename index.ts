@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import minimist from "minimist";
 import pMap from "p-map";
-import {rrdir} from "rrdir";
+import {rrdir, type RRDirOpts} from "rrdir";
 import {constants, gzip, brotliCompress, zstdCompress} from "node:zlib";
 import {availableParallelism, cpus} from "node:os";
 import {argv, exit, versions, env} from "node:process";
@@ -159,9 +159,9 @@ function getOutputPath(path: string, type: string) {
   return args.extensionless ? ret : `${ret}.${type}`;
 }
 
-async function compressFile(data: Buffer, path: string, start: number, type: string) {
+async function compressFile(data: Buffer, path: string, start: number | null, type: string) {
   const newPath = getOutputPath(path, type);
-  let newData: Buffer;
+  let newData: Buffer | undefined;
   if (type === "gz") {
     newData = await gzipEncode(data);
   } else if (type === "br") {
@@ -170,12 +170,12 @@ async function compressFile(data: Buffer, path: string, start: number, type: str
     newData = await zstdEncode(data);
   }
   await mkdir(dirname(newPath), {recursive: true});
-  await writeFile(newPath, newData);
+  await writeFile(newPath, newData!);
   if (args.delete) await unlink(path);
 
   if (start) {
     const ms = Math.round(performance.now() - start);
-    const red = reductionText(data, newData);
+    const red = reductionText(data, newData!);
     console.info(`✓ compressed ${styleText("magenta", newPath)} in ${ms}ms ${red}`);
   }
 }
@@ -224,7 +224,7 @@ async function compress(path: string) {
   }
 }
 
-function isIncluded(path: string, includeMatcher: (path: string) => boolean, excludeMatcher: (path: string) => boolean) {
+function isIncluded(path: string, includeMatcher: ((path: string) => boolean) | undefined, excludeMatcher: ((path: string) => boolean) | undefined) {
   if (excludeMatcher?.(path)) return false;
   if (!includeMatcher) return true;
   return includeMatcher(path);
@@ -235,23 +235,23 @@ async function main() {
   const includeGlobs = new Set(argToArray(args.include));
   const excludeGlobs = new Set([...alwaysExclude, ...argToArray(args.exclude)]);
 
-  const rrdirOpts = {
-    include: includeGlobs.size ? Array.from(includeGlobs) : null,
-    exclude: excludeGlobs.size ? Array.from(excludeGlobs) : null,
+  const rrdirOpts: RRDirOpts = {
+    include: includeGlobs.size ? Array.from(includeGlobs) : undefined,
+    exclude: excludeGlobs.size ? Array.from(excludeGlobs) : undefined,
     followSymlinks: args.follow,
     insensitive: !args.sensitive,
   };
 
   const picoOpts = {dot: true, flags: args.sensitive ? "i" : undefined};
-  const includeMatcher = includeGlobs.size && picomatch(Array.from(includeGlobs), picoOpts);
-  const excludeMatcher = excludeGlobs.size && picomatch(Array.from(excludeGlobs), picoOpts);
+  const includeMatcher = (includeGlobs.size && picomatch(Array.from(includeGlobs), picoOpts) || undefined);
+  const excludeMatcher = (excludeGlobs.size && picomatch(Array.from(excludeGlobs), picoOpts) || undefined);
 
-  const files = [];
+  const files: Array<string> = [];
   for (const file of args._) {
     const stats = await stat(file);
     if (stats.isDirectory()) {
       for await (const entry of rrdir(file, rrdirOpts)) {
-        if (!entry.directory) files.push(entry.path);
+        if (!entry.directory) files.push(entry.path as string);
       }
     } else {
       if (isIncluded(file, includeMatcher, excludeMatcher)) {
