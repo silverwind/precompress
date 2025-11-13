@@ -5,12 +5,10 @@ import {rrdir} from "rrdir";
 import {constants, gzip, brotliCompress, zstdCompress} from "node:zlib";
 import {availableParallelism, cpus} from "node:os";
 import {argv, exit, versions, env} from "node:process";
-import {promisify} from "node:util";
+import {promisify, styleText} from "node:util";
 import {stat, readFile, writeFile, realpath, mkdir, unlink} from "node:fs/promises";
 import {extname, relative, join, dirname} from "node:path";
 import {isBinaryFileSync} from "isbinaryfile";
-import supportsColor from "supports-color";
-import {green, magenta, red, yellow, disableColor} from "glowie";
 import picomatch from "picomatch";
 import pkg from "./package.json" with {type: "json"};
 
@@ -62,8 +60,6 @@ const args = minimist(argv.slice(2), {
     V: "verbose",
   },
 });
-
-if (!supportsColor.stdout) disableColor();
 
 function finish(err: Error | void) {
   if (err) console.error(err.stack || err.message || err);
@@ -127,11 +123,11 @@ function reductionText(data: Buffer, newData: Buffer) {
   const change = (((newData.byteLength / data.byteLength) * 100));
 
   if (change <= 80) {
-    return `(${green(`${change.toPrecision(3)}%`)} size)`;
+    return `(${styleText("green", `${change.toPrecision(3)}%`)} size)`;
   } else if (change < 100) {
-    return `(${yellow(`${change.toPrecision(3)}%`)} size)`;
+    return `(${styleText("yellow", `${change.toPrecision(3)}%`)} size)`;
   } else {
-    return `(${red(`${change.toPrecision(3)}%`)} size)`;
+    return `(${styleText("red", `${change.toPrecision(3)}%`)} size)`;
   }
 }
 
@@ -180,7 +176,7 @@ async function compressFile(data: Buffer, path: string, start: number, type: str
   if (start) {
     const ms = Math.round(performance.now() - start);
     const red = reductionText(data, newData);
-    console.info(`✓ compressed ${magenta(newPath)} in ${ms}ms ${red}`);
+    console.info(`✓ compressed ${styleText("magenta", newPath)} in ${ms}ms ${red}`);
   }
 }
 
@@ -271,7 +267,7 @@ async function main() {
 
   const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, numCores);
   await pMap(files, compress, {concurrency});
-  if (start) console.info(green(
+  if (start) console.info(styleText("green",
     `✓ ${filesText} done in ${Math.round(performance.now() - start)}ms`,
   ));
 }
