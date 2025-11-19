@@ -18,7 +18,7 @@
     "@types/node": "24.10.1",
     "@types/picomatch": "4.0.2",
     "eslint": "9.39.1",
-    "eslint-config-silverwind": "111.0.5",
+    "eslint-config-silverwind": "111.0.8",
     "execa": "9.6.0",
     "fast-glob": "3.3.3",
     "isbinaryfile": "5.0.7",
@@ -26,13 +26,13 @@
     "p-map": "7.0.4",
     "picomatch": "4.0.3",
     "rrdir": "14.0.2",
-    "tsdown": "0.16.4",
-    "tsdown-config-silverwind": "1.5.2",
+    "tsdown": "0.16.5",
+    "tsdown-config-silverwind": "1.5.3",
     "typescript": "5.9.3",
-    "typescript-config-silverwind": "13.0.1",
+    "typescript-config-silverwind": "13.0.2",
     "updates": "16.9.1",
     "versions": "14.0.2",
-    "vitest": "4.0.8",
+    "vitest": "4.0.10",
     "vitest-config-silverwind": "10.4.2"
   }
 }
