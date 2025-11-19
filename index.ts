@@ -61,14 +61,14 @@ const args = minimist(argv.slice(2), {
   },
 });
 
-function finish(err: Error | void) {
+function end(err: Error | void) {
   if (err) console.error(err.stack || err.message || err);
   exit(err ? 1 : 0);
 }
 
 if (args.version) {
   console.info(packageVersion);
-  finish();
+  end();
 }
 
 if (!args._.length || args.help) {
@@ -93,7 +93,7 @@ if (!args._.length || args.help) {
 
   Examples:
     $ precompress ./build`);
-  finish();
+  end();
 }
 
 const {
@@ -272,4 +272,4 @@ async function main() {
   ));
 }
 
-main().then(finish).catch(finish);
+main().then(end).catch(end);
