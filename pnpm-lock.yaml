@@ -32,6 +32,9 @@ importers:
       isbinaryfile:
         specifier: 5.0.7
         version: 5.0.7
+      jest-extended:
+        specifier: 7.0.0
+        version: 7.0.0(typescript@5.9.3)
       minimist:
         specifier: 1.2.8
         version: 1.2.8
@@ -62,6 +65,9 @@ importers:
       versions:
         specifier: 14.0.2
         version: 14.0.2
+      vite:
+        specifier: 7.3.1
+        version: 7.3.1(@types/node@24.10.1)(jiti@2.6.1)
       vitest:
         specifier: 4.0.10
         version: 4.0.10(@types/node@24.10.1)(jiti@2.6.1)
