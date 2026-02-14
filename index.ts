@@ -251,7 +251,7 @@ async function main() {
     const stats = await stat(file);
     if (stats.isDirectory()) {
       for await (const entry of rrdir(file, rrdirOpts)) {
-        if (!entry.directory) files.push(entry.path as string);
+        if (!entry.directory) files.push(entry.path);
       }
     } else {
       if (isIncluded(file, includeMatcher, excludeMatcher)) {
