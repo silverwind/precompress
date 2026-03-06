@@ -20,7 +20,7 @@
     "@types/picomatch": "4.0.2",
     "@typescript/native-preview": "7.0.0-dev.20260306.1",
     "eslint": "9.39.3",
-    "eslint-config-silverwind": "122.0.2",
+    "eslint-config-silverwind": "122.0.4",
     "execa": "9.6.1",
     "fast-glob": "3.3.3",
     "isbinaryfile": "6.0.0",
