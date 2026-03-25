@@ -6,6 +6,7 @@
   "repository": "silverwind/precompress",
   "license": "BSD-2-Clause",
   "type": "module",
+  "sideEffects": false,
   "bin": "./dist/index.js",
   "packageManager": "pnpm@10.30.3",
   "engines": {
