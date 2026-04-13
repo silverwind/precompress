@@ -77,7 +77,7 @@ if (!args._.length || args.help) {
   Options:
     -t, --types <type,...>    Types of files to generate. Default: gz,br,zst
     -i, --include <glob,...>  Only include given globs. Default: unset
-    -e, --exclude <glob,...>  Exclude given globs. Default: ${alwaysExclude}
+    -e, --exclude <glob,...>  Exclude given globs. Default: ${alwaysExclude.join(",")}
     -m, --mtime               Skip creating existing files when source file is newer
     -f, --follow              Follow symbolic links
     -d, --delete              Delete source file after compression
