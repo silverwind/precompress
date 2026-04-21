@@ -220,7 +220,8 @@ async function compress(path: string) {
     if (!skipBrotli && brotliEncode) await compressFile(data, path, start, "br");
     if (!skipZstd && zstdEncode) await compressFile(data, path, start, "zst");
   } catch (err) {
-    console.info(`Error on ${path}: ${err.code} ${err.message}`);
+    const {code, message} = err as NodeJS.ErrnoException;
+    console.info(`Error on ${path}: ${code} ${message}`);
   }
 }
 
