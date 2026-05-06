@@ -8,7 +8,7 @@
   "type": "module",
   "sideEffects": false,
   "bin": "./dist/index.js",
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "pnpm@10.33.3",
   "engines": {
     "node": ">=22"
   },
@@ -19,9 +19,9 @@
     "@types/minimist": "1.2.5",
     "@types/node": "25.6.0",
     "@types/picomatch": "4.0.3",
-    "@typescript/native-preview": "7.0.0-dev.20260420.1",
-    "eslint": "10.2.1",
-    "eslint-config-silverwind": "131.0.5",
+    "@typescript/native-preview": "7.0.0-dev.20260505.1",
+    "eslint": "10.3.0",
+    "eslint-config-silverwind": "133.0.0",
     "execa": "9.6.1",
     "fast-glob": "3.3.3",
     "isbinaryfile": "6.0.0",
@@ -29,16 +29,16 @@
     "minimist": "1.2.8",
     "p-map": "7.0.4",
     "picomatch": "4.0.4",
-    "rrdir": "14.2.9",
-    "tsdown": "0.21.9",
-    "tsdown-config-silverwind": "2.1.0",
+    "rrdir": "14.2.10",
+    "tsdown": "0.21.10",
+    "tsdown-config-silverwind": "2.1.1",
     "typescript": "6.0.3",
     "typescript-config-silverwind": "18.0.0",
-    "updates": "17.15.5",
-    "updates-config-silverwind": "2.1.0",
-    "versions": "15.0.0",
-    "vite": "8.0.9",
-    "vitest": "4.1.4",
-    "vitest-config-silverwind": "11.3.0"
+    "updates": "17.16.9",
+    "updates-config-silverwind": "2.1.2",
+    "versions": "15.0.3",
+    "vite": "8.0.10",
+    "vitest": "4.1.5",
+    "vitest-config-silverwind": "11.3.2"
   }
 }
