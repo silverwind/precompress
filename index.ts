@@ -273,4 +273,9 @@ async function main() {
   ));
 }
 
-main().then(end).catch(end);
+try {
+  await main();
+  end();
+} catch (err) {
+  end(err as Error);
+}
