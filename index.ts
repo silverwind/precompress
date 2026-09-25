@@ -1,11 +1,10 @@
 #!/usr/bin/env node
-import minimist from "minimist";
 import pMap from "p-map";
 import {rrdir, type RRDirOpts} from "rrdir";
 import {constants, gzip, brotliCompress, zstdCompress} from "node:zlib";
 import {availableParallelism, cpus} from "node:os";
 import {argv, exit, versions, env} from "node:process";
-import {promisify, styleText} from "node:util";
+import {parseArgs, promisify, styleText, type ParseArgsConfig} from "node:util";
 import {stat, readFile, writeFile, realpath, mkdir, unlink} from "node:fs/promises";
 import {extname, relative, join, dirname} from "node:path";
 import {isBinaryFileSync} from "isbinaryfile";
@@ -21,45 +20,38 @@ if (versions?.uv && numCores > 4) {
   env.UV_THREADPOOL_SIZE = String(numCores);
 }
 
-const args = minimist(argv.slice(2), {
-  boolean: [
-    "d", "delete",
-    "E", "extensionless",
-    "f", "follow",
-    "h", "help",
-    "m", "mtime",
-    "s", "silent",
-    "S", "sensitive",
-    "v", "version",
-    "V", "verbose",
-  ],
-  string: [
-    "b", "basedir",
-    "o", "outdir",
-    "t", "types",
-    "_"
-  ],
-  // @ts-expect-error
-  number: [
-    "c", "concurrency",
-  ],
-  alias: {
-    b: "basedir",
-    c: "concurrency",
-    d: "delete",
-    e: "exclude",
-    E: "extensionless",
-    h: "help",
-    i: "include",
-    o: "outdir",
-    m: "mtime",
-    s: "silent",
-    S: "sensitive",
-    t: "types",
-    v: "version",
-    V: "verbose",
+function parseArgv<T extends ParseArgsConfig>(config: T): ReturnType<typeof parseArgs<T>> {
+  try {
+    return parseArgs(config);
+  } catch (err) {
+    console.error((err as Error).message);
+    return exit(1);
+  }
+}
+
+const {values, positionals} = parseArgv({
+  args: argv.slice(2),
+  allowPositionals: true,
+  strict: true,
+  options: {
+    basedir: {type: "string", short: "b"},
+    concurrency: {type: "string", short: "c"},
+    delete: {type: "boolean", short: "d"},
+    exclude: {type: "string", short: "e", multiple: true},
+    extensionless: {type: "boolean", short: "E"},
+    follow: {type: "boolean", short: "f"},
+    help: {type: "boolean", short: "h"},
+    include: {type: "string", short: "i", multiple: true},
+    mtime: {type: "boolean", short: "m"},
+    outdir: {type: "string", short: "o"},
+    sensitive: {type: "boolean", short: "S"},
+    silent: {type: "boolean", short: "s"},
+    types: {type: "string", short: "t", multiple: true},
+    verbose: {type: "boolean", short: "V"},
+    version: {type: "boolean", short: "v"},
   },
 });
+const args = {...values, _: positionals};
 
 function end(err: Error | void) {
   if (err) console.error(err.stack || err.message || err);
@@ -131,7 +123,7 @@ function reductionText(data: Buffer, newData: Buffer) {
   }
 }
 
-const types = args.types ? args.types.split(",") : ["gz", "br", "zst"];
+const types = args.types ? argToArray(args.types) : ["gz", "br", "zst"];
 
 const gzipEncode = types.includes("gz") && ((data: Buffer) => promisify(gzip)(data, {
   level: Z_BEST_COMPRESSION,
@@ -148,9 +140,9 @@ const zstdEncode = types.includes("zst") && ((data: Buffer) => promisify(zstdCom
   }
 }));
 
-function argToArray(arg: boolean | Array<string>) {
-  if (typeof arg === "boolean" || !arg) return [];
-  return (Array.isArray(arg) ? arg : [arg]).flatMap(item => item.split(",")).filter(Boolean);
+function argToArray(arg: Array<string> | undefined) {
+  if (!arg) return [];
+  return arg.flatMap(item => item.split(",")).filter(Boolean);
 }
 
 function getOutputPath(path: string, type: string) {
@@ -162,11 +154,11 @@ function getOutputPath(path: string, type: string) {
 async function compressFile(data: Buffer, path: string, start: number | null, type: string) {
   const newPath = getOutputPath(path, type);
   let newData: Buffer | undefined;
-  if (type === "gz") {
+  if (type === "gz" && gzipEncode) {
     newData = await gzipEncode(data);
-  } else if (type === "br") {
+  } else if (type === "br" && brotliEncode) {
     newData = await brotliEncode(data, path);
-  } else if (type === "zst") {
+  } else if (type === "zst" && zstdEncode) {
     newData = await zstdEncode(data);
   }
   await mkdir(dirname(newPath), {recursive: true});
@@ -266,7 +258,8 @@ async function main() {
   if (!files.length) throw new Error(`No matching files found`);
   if (!args.silent) console.info(`precompress ${packageVersion} compressing ${filesText}...`);
 
-  const concurrency = args.concurrency > 0 ? args.concurrency : Math.min(files.length, numCores);
+  const requestedConcurrency = Number(args.concurrency);
+  const concurrency = requestedConcurrency > 0 ? requestedConcurrency : Math.min(files.length, numCores);
   await pMap(files, compress, {concurrency});
   if (start) console.info(styleText("green",
     `✓ ${filesText} done in ${Math.round(performance.now() - start)}ms`,

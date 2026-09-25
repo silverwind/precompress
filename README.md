@@ -19,7 +19,7 @@ usage: precompress [options] <files,dirs,...>
   Options:
     -t, --types <type,...>    Types of files to generate. Default: gz,br,zst
     -i, --include <glob,...>  Only include given globs. Default: unset
-    -e, --exclude <glob,...>  Exclude given globs. Default: **.gz,**.br
+    -e, --exclude <glob,...>  Exclude given globs. Default: **.gz,**.br,**.zst
     -m, --mtime               Skip creating existing files when source file is newer
     -f, --follow              Follow symbolic links
     -d, --delete              Delete source file after compression
@@ -36,5 +36,7 @@ usage: precompress [options] <files,dirs,...>
   Examples:
     $ precompress ./build
 ```
+
+The `-t`, `-i`, and `-e` options can be repeated. Unknown options are rejected.
 
 © [silverwind](https://github.com/silverwind), distributed under BSD licence
