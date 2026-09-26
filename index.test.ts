@@ -37,6 +37,7 @@ function makeTest(argsFn: (testDir: string) => string | string[], expectedPaths:
 
 test("help and version", async () => {
   const {version} = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
+  const readme = readFileSync(new URL("README.md", import.meta.url), "utf8");
   for (const flag of ["-v", "--version"]) {
     const {stdout, exitCode} = await execa("node", [script, flag]);
     expect(stdout).toEqual(version);
@@ -45,6 +46,7 @@ test("help and version", async () => {
   for (const flag of ["-h", "--help"]) {
     const {stdout, exitCode} = await execa("node", [script, flag]);
     expect(stdout).toContain("usage: precompress");
+    expect(readme).toContain(stdout);
     expect(exitCode).toEqual(0);
   }
 });

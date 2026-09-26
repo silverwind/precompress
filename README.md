@@ -17,12 +17,12 @@ usage: precompress [options] <files,dirs,...>
     -t, --types <type,...>    Types of files to generate. Default: gz,br,zst
     -i, --include <glob,...>  Only include given globs. Default: unset
     -e, --exclude <glob,...>  Exclude given globs. Default: **.gz,**.br,**.zst
-    -m, --mtime               Skip creating existing files when source file is newer
+    -m, --mtime               Skip outputs that are newer than their source file
     -f, --follow              Follow symbolic links
     -d, --delete              Delete source file after compression
     -o, --outdir              Output directory, will preserve relative path structure
     -b, --basedir             Base directory to derive output path, use with --outdir
-    -E, --extensionless       Do not output a extension, use with single --type and --outdir
+    -E, --extensionless       Do not output an extension, use with single --type and --outdir
     -s, --silent              Do not print anything
     -S, --sensitive           Treat include and exclude patterns case-sensitively
     -c, --concurrency <num>   Number of concurrent operations. Default: auto
