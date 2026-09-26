@@ -5,283 +5,76 @@ import {platform} from "node:process";
 import {join} from "node:path";
 import fastGlob from "fast-glob";
 import {tmpdir} from "node:os";
+import pkg from "./package.json" with {type: "json"};
 
 const script = fileURLToPath(new URL("dist/index.js", import.meta.url));
+const sources = ["outer.html", "outer.png", "src/inner.css", "src/inner.js"];
 
-function setupTestDir() {
+function outputs(files: Array<string>, prefix = "", exts = [".br", ".gz", ".zst"]) {
+  return files.flatMap(file => exts.map(ext => `${prefix}${file}${ext}`));
+}
+
+function run(cwd: string, args: string) {
+  return execa(script, args.split(" "), {cwd});
+}
+
+async function withTestDir(fn: (testDir: string) => Promise<unknown>) {
   const testDir = mkdtempSync(join(tmpdir(), "precompress-"));
-  const srcDir = join(testDir, "src");
-  mkdirSync(srcDir, {recursive: true});
-  writeFileSync(join(testDir, "outer.html"), (new Array(1e4)).join("index"));
-  writeFileSync(join(testDir, "already.gz"), (new Array(1e4)).join("index"));
-  writeFileSync(join(testDir, "outer.png"), (new Array(1e4)).join("image"));
-  writeFileSync(join(srcDir, "inner.js"), (new Array(1e4)).join("index"));
-  writeFileSync(join(srcDir, "inner.css"), (new Array(1e4)).join("index"));
-  return testDir;
-}
-
-async function run(testDir: string, args: string) {
-  return execa(script, [".", ...args.split(/\s+/).filter(Boolean)], {cwd: testDir});
-}
-
-function makeTest(argsFn: (testDir: string) => string | string[], expectedPaths: string[]) {
-  return async () => {
-    const testDir = setupTestDir();
-    try {
-      for (const args of [argsFn(testDir)].flat()) await run(testDir, args);
-      expect(fastGlob.sync(`**`, {cwd: testDir}).sort()).toEqual(expectedPaths);
-    } finally {
-      rmSync(testDir, {recursive: true, force: true});
+  try {
+    mkdirSync(join(testDir, "src"));
+    for (const file of ["already.gz", ...sources]) {
+      writeFileSync(join(testDir, file), (file.endsWith(".png") ? "image" : "index").repeat(9999));
     }
-  };
+    await fn(testDir);
+  } finally {
+    rmSync(testDir, {recursive: true, force: true});
+  }
 }
 
 test("help and version", async () => {
-  const {version} = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
-  const readme = readFileSync(new URL("README.md", import.meta.url), "utf8");
   for (const flag of ["-v", "--version"]) {
-    const {stdout, exitCode} = await execa("node", [script, flag]);
-    expect(stdout).toEqual(version);
-    expect(exitCode).toEqual(0);
+    expect((await execa("node", [script, flag])).stdout).toEqual(pkg.version);
   }
   for (const flag of ["-h", "--help"]) {
-    const {stdout, exitCode} = await execa("node", [script, flag]);
+    const {stdout} = await execa("node", [script, flag]);
     expect(stdout).toContain("usage: precompress");
-    expect(readme).toContain(stdout);
-    expect(exitCode).toEqual(0);
+    expect(readFileSync(new URL("README.md", import.meta.url), "utf8")).toContain(stdout);
   }
 });
 
-test("concurrency", makeTest(() => "-c 2", [
-  "already.gz",
-  "outer.html",
-  "outer.html.br",
-  "outer.html.gz",
-  "outer.html.zst",
-  "outer.png",
-  "outer.png.br",
-  "outer.png.gz",
-  "outer.png.zst",
-  "src/inner.css",
-  "src/inner.css.br",
-  "src/inner.css.gz",
-  "src/inner.css.zst",
-  "src/inner.js",
-  "src/inner.js.br",
-  "src/inner.js.gz",
-  "src/inner.js.zst",
-]));
-test("delete", makeTest(() => "-d", [
-  "already.gz",
-  "outer.html.br",
-  "outer.html.gz",
-  "outer.html.zst",
-  "outer.png.br",
-  "outer.png.gz",
-  "outer.png.zst",
-  "src/inner.css.br",
-  "src/inner.css.gz",
-  "src/inner.css.zst",
-  "src/inner.js.br",
-  "src/inner.js.gz",
-  "src/inner.js.zst",
-]));
-test("include 1", makeTest(() => "-i **.html,**.foo -i **.css", [
-  "already.gz",
-  "outer.html",
-  "outer.html.br",
-  "outer.html.gz",
-  "outer.html.zst",
-  "outer.png",
-  "src/inner.css",
-  "src/inner.css.br",
-  "src/inner.css.gz",
-  "src/inner.css.zst",
-  "src/inner.js",
-]));
-test("include 2", makeTest(() => "-i **.HTML", [
-  "already.gz",
-  "outer.html",
-  "outer.html.br",
-  "outer.html.gz",
-  "outer.html.zst",
-  "outer.png",
-  "src/inner.css",
-  "src/inner.js",
-]));
-test("exclude 1", makeTest(() => "-e **.png", [
-  "already.gz",
-  "outer.html",
-  "outer.html.br",
-  "outer.html.gz",
-  "outer.html.zst",
-  "outer.png",
-  "src/inner.css",
-  "src/inner.css.br",
-  "src/inner.css.gz",
-  "src/inner.css.zst",
-  "src/inner.js",
-  "src/inner.js.br",
-  "src/inner.js.gz",
-  "src/inner.js.zst",
-]));
-test("exclude 2", makeTest(() => "-e **.png -e **.html", [
-  "already.gz",
-  "outer.html",
-  "outer.png",
-  "src/inner.css",
-  "src/inner.css.br",
-  "src/inner.css.gz",
-  "src/inner.css.zst",
-  "src/inner.js",
-  "src/inner.js.br",
-  "src/inner.js.gz",
-  "src/inner.js.zst",
-]));
-test("exclude 3", makeTest(() => "-e **.html", [
-  "already.gz",
-  "outer.html",
-  "outer.png",
-  "outer.png.br",
-  "outer.png.gz",
-  "outer.png.zst",
-  "src/inner.css",
-  "src/inner.css.br",
-  "src/inner.css.gz",
-  "src/inner.css.zst",
-  "src/inner.js",
-  "src/inner.js.br",
-  "src/inner.js.gz",
-  "src/inner.js.zst",
-]));
-test("exclude 4", makeTest(() => "-e ''", [
-  "already.gz",
-  "outer.html",
-  "outer.html.br",
-  "outer.html.gz",
-  "outer.html.zst",
-  "outer.png",
-  "outer.png.br",
-  "outer.png.gz",
-  "outer.png.zst",
-  "src/inner.css",
-  "src/inner.css.br",
-  "src/inner.css.gz",
-  "src/inner.css.zst",
-  "src/inner.js",
-  "src/inner.js.br",
-  "src/inner.js.gz",
-  "src/inner.js.zst",
-]));
-test("mtime", makeTest(testDir => ["-m", `-m -o ${testDir}/dist`], [
-  "already.gz",
-  "dist/outer.html.br",
-  "dist/outer.html.gz",
-  "dist/outer.html.zst",
-  "dist/outer.png.br",
-  "dist/outer.png.gz",
-  "dist/outer.png.zst",
-  "dist/src/inner.css.br",
-  "dist/src/inner.css.gz",
-  "dist/src/inner.css.zst",
-  "dist/src/inner.js.br",
-  "dist/src/inner.js.gz",
-  "dist/src/inner.js.zst",
-  "outer.html",
-  "outer.html.br",
-  "outer.html.gz",
-  "outer.html.zst",
-  "outer.png",
-  "outer.png.br",
-  "outer.png.gz",
-  "outer.png.zst",
-  "src/inner.css",
-  "src/inner.css.br",
-  "src/inner.css.gz",
-  "src/inner.css.zst",
-  "src/inner.js",
-  "src/inner.js.br",
-  "src/inner.js.gz",
-  "src/inner.js.zst",
-]));
-test.skipIf(platform === "win32")("mtime does not read sources whose selected outputs are newer", async () => {
-  const testDir = setupTestDir();
-  try {
-    await run(testDir, "-t gz");
-    chmodSync(join(testDir, "outer.html"), 0);
-    expect((await run(testDir, "-m -t gz")).stdout).not.toContain("EACCES");
-  } finally {
-    rmSync(testDir, {recursive: true, force: true});
-  }
-});
-test("outdir", makeTest(testDir => `-o ${testDir}/dist --types gz,br --types zst`, [
-  "already.gz",
-  "dist/outer.html.br",
-  "dist/outer.html.gz",
-  "dist/outer.html.zst",
-  "dist/outer.png.br",
-  "dist/outer.png.gz",
-  "dist/outer.png.zst",
-  "dist/src/inner.css.br",
-  "dist/src/inner.css.gz",
-  "dist/src/inner.css.zst",
-  "dist/src/inner.js.br",
-  "dist/src/inner.js.gz",
-  "dist/src/inner.js.zst",
-  "outer.html",
-  "outer.png",
-  "src/inner.css",
-  "src/inner.js",
-]));
-test("outdir,basedir", makeTest(testDir => `--outdir ${testDir}/dist --basedir src`, [
-  "already.gz",
-  "dist/inner.css.br",
-  "dist/inner.css.gz",
-  "dist/inner.css.zst",
-  "dist/inner.js.br",
-  "dist/inner.js.gz",
-  "dist/inner.js.zst",
-  "outer.html",
-  "outer.html.br",
-  "outer.html.gz",
-  "outer.html.zst",
-  "outer.png",
-  "outer.png.br",
-  "outer.png.gz",
-  "outer.png.zst",
-  "src/inner.css",
-  "src/inner.js",
-]));
-test("outdir,extensionless", makeTest(testDir => `-o ${testDir}/dist -t gz -E`, [
-  "already.gz",
-  "dist/outer.html",
-  "dist/outer.png",
-  "dist/src/inner.css",
-  "dist/src/inner.js",
-  "outer.html",
-  "outer.png",
-  "src/inner.css",
-  "src/inner.js",
-]));
+test.each([
+  ["concurrency", [". -c 2"], [...sources, ...outputs(sources)]],
+  ["delete", [". -d"], outputs(sources)],
+  ["include 1", [". -i **.html,**.foo -i **.css"], [...sources, ...outputs(["outer.html", "src/inner.css"])]],
+  ["include 2", [". -i **.HTML"], [...sources, ...outputs(["outer.html"])]],
+  ["exclude 1", [". -e **.png"], [...sources, ...outputs(["outer.html", "src/inner.css", "src/inner.js"])]],
+  ["exclude 2", [". -e **.png -e **.html"], [...sources, ...outputs(["src/inner.css", "src/inner.js"])]],
+  ["exclude 3", [". -e **.html"], [...sources, ...outputs(["outer.png", "src/inner.css", "src/inner.js"])]],
+  ["exclude 4", [". -e ''"], [...sources, ...outputs(sources)]],
+  ["mtime", [". -m", ". -m -o $DIR/dist"], [...sources, ...outputs(sources), ...outputs(sources, "dist/")]],
+  ["outdir", [". -o $DIR/dist --types gz,br --types zst"], [...sources, ...outputs(sources, "dist/")]],
+  ["outdir,basedir", [". --outdir $DIR/dist --basedir src"], [
+    ...sources,
+    ...outputs(["outer.html", "outer.png"]),
+    ...outputs(["inner.css", "inner.js"], "dist/"),
+  ]],
+  ["outdir,extensionless", [". -o $DIR/dist -t gz -E"], [...sources, ...outputs(sources, "dist/", [""])]],
+] as Array<[string, Array<string>, Array<string>]>)("%s", (_name, runs, expected) => withTestDir(async testDir => {
+  for (const args of runs) await run(testDir, args.replace("$DIR", testDir));
+  expect(fastGlob.sync("**", {cwd: testDir}).sort()).toEqual(["already.gz", ...expected].sort());
+}));
 
-test("no matching files 1", async () => {
-  const testDir = setupTestDir();
-  try {
-    await expect(run(testDir, "-e **.png,**.html -e **.js,**.css")).rejects.toThrow();
-  } finally {
-    rmSync(testDir, {recursive: true, force: true});
-  }
-});
+test.skipIf(platform === "win32")("mtime does not read sources whose selected outputs are newer", () => withTestDir(async testDir => {
+  await run(testDir, ". -t gz");
+  chmodSync(join(testDir, "outer.html"), 0);
+  expect((await run(testDir, ". -m -t gz")).stdout).not.toContain("EACCES");
+}));
 
-test("no matching files 2", async () => {
-  const testDir = setupTestDir();
-  try {
-    await expect(run(testDir, "-i HTML -S")).rejects.toThrow();
-    await expect(execa(script, ["-S", "-i", "**.HTML", "outer.html"], {cwd: testDir})).rejects.toThrow();
-    await expect(execa(script, ["-e", "**.HTML", "outer.html"], {cwd: testDir})).rejects.toThrow();
-    await expect(execa(script, ["-e", "**.html", "./outer.html"], {cwd: testDir})).rejects.toThrow();
-    await expect(execa(script, ["../already.gz"], {cwd: join(testDir, "src")})).rejects.toThrow();
-  } finally {
-    rmSync(testDir, {recursive: true, force: true});
-  }
-});
+test("no matching files", () => withTestDir(testDir => Promise.all([
+  ["", ". -e **.png,**.html -e **.js,**.css"],
+  ["", ". -i HTML -S"],
+  ["", "-S -i **.HTML outer.html"],
+  ["", "-e **.HTML outer.html"],
+  ["", "-e **.html ./outer.html"],
+  ["src", "../already.gz"],
+].map(([cwd, args]) => expect(run(join(testDir, cwd), args)).rejects.toThrow("No matching files found")))));
