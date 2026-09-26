@@ -1,7 +1,7 @@
 # precompress
 [![](https://img.shields.io/npm/v/precompress.svg?style=flat)](https://www.npmjs.org/package/precompress) [![](https://img.shields.io/npm/dm/precompress.svg)](https://www.npmjs.org/package/precompress) [![](https://packagephobia.com/badge?p=precompress)](https://packagephobia.com/result?p=precompress)
 
-CLI to compress files to gzip, brotli and zstd. Files are efficiently compressed in parallel. Existing output files will always be overridden.
+CLI to compress files to gzip, brotli and zstd. Files are efficiently compressed in parallel. Existing output files are overwritten unless `-m` is given and they are newer than their source.
 
 ## Usage
 
