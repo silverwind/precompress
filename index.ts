@@ -2,7 +2,7 @@
 import pMap from "p-map";
 import {rrdir, type RRDirOpts} from "rrdir";
 import {constants, gzip, brotliCompress, zstdCompress} from "node:zlib";
-import {availableParallelism, cpus} from "node:os";
+import {availableParallelism} from "node:os";
 import {argv, exit, versions, env} from "node:process";
 import {parseArgs, promisify, styleText, type ParseArgsConfig} from "node:util";
 import {stat, readFile, writeFile, realpath, mkdir, unlink} from "node:fs/promises";
@@ -11,12 +11,11 @@ import {isBinaryFileSync} from "isbinaryfile";
 import picomatch from "picomatch";
 import pkg from "./package.json" with {type: "json"};
 
-const packageVersion = pkg.version || "0.0.0";
 const alwaysExclude = ["**.gz", "**.br", "**.zst"];
-const numCores = availableParallelism?.() ?? cpus().length ?? 4;
+const numCores = availableParallelism();
 
 // raise libuv threadpool over default 4 when more cores are available
-if (versions?.uv && numCores > 4) {
+if (versions.uv && numCores > 4) {
   env.UV_THREADPOOL_SIZE = String(numCores);
 }
 
@@ -29,7 +28,7 @@ function parseArgv<T extends ParseArgsConfig>(config: T): ReturnType<typeof pars
   }
 }
 
-const {values, positionals} = parseArgv({
+const {values: args, positionals} = parseArgv({
   args: argv.slice(2),
   allowPositionals: true,
   strict: true,
@@ -51,7 +50,6 @@ const {values, positionals} = parseArgv({
     version: {type: "boolean", short: "v"},
   },
 });
-const args = {...values, _: positionals};
 
 function end(err: Error | void) {
   if (err) console.error(err.stack || err.message || err);
@@ -59,11 +57,11 @@ function end(err: Error | void) {
 }
 
 if (args.version) {
-  console.info(packageVersion);
+  console.info(pkg.version);
   end();
 }
 
-if (!args._.length || args.help) {
+if (!positionals.length || args.help) {
   console.info(`usage: precompress [options] <files,dirs,...>
 
   Options:
@@ -100,7 +98,6 @@ const {
   ZSTD_btultra2,
 } = constants;
 
-
 function getBrotliMode(data: Buffer, path: string) {
   if (extname(path).toLowerCase() === ".woff2") {
     return BROTLI_MODE_FONT;
@@ -112,36 +109,26 @@ function getBrotliMode(data: Buffer, path: string) {
 }
 
 function reductionText(data: Buffer, newData: Buffer) {
-  const change = (((newData.byteLength / data.byteLength) * 100));
-
-  if (change <= 80) {
-    return `(${styleText("green", `${change.toPrecision(3)}%`)} size)`;
-  } else if (change < 100) {
-    return `(${styleText("yellow", `${change.toPrecision(3)}%`)} size)`;
-  } else {
-    return `(${styleText("red", `${change.toPrecision(3)}%`)} size)`;
-  }
+  const change = (newData.byteLength / data.byteLength) * 100;
+  const color = change <= 80 ? "green" : (change < 100 ? "yellow" : "red");
+  return `(${styleText(color, `${change.toPrecision(3)}%`)} size)`;
 }
 
-const types = args.types ? argToArray(args.types) : ["gz", "br", "zst"];
+const encoders: Record<string, (data: Buffer, path: string) => Promise<Buffer>> = {
+  gz: data => promisify(gzip)(data, {level: Z_BEST_COMPRESSION}),
+  br: (data, path) => promisify(brotliCompress)(data, {
+    params: {
+      [BROTLI_PARAM_MODE]: getBrotliMode(data, path),
+      [BROTLI_PARAM_QUALITY]: BROTLI_MAX_QUALITY,
+    }
+  }),
+  zst: data => promisify(zstdCompress)(data, {params: {[ZSTD_c_strategy]: ZSTD_btultra2}}),
+};
+const allTypes = Object.keys(encoders);
+const types = args.types ? argToArray(args.types) : allTypes;
+const enabledTypes = allTypes.filter(type => types.includes(type));
 
-const gzipEncode = types.includes("gz") && ((data: Buffer) => promisify(gzip)(data, {
-  level: Z_BEST_COMPRESSION,
-}));
-const brotliEncode = types.includes("br") && ((data: Buffer, path: string) => promisify(brotliCompress)(data, {
-  params: {
-    [BROTLI_PARAM_MODE]: getBrotliMode(data, path),
-    [BROTLI_PARAM_QUALITY]: BROTLI_MAX_QUALITY,
-  }
-}));
-const zstdEncode = types.includes("zst") && ((data: Buffer) => promisify(zstdCompress)(data, {
-  params: {
-    [ZSTD_c_strategy]: ZSTD_btultra2,
-  }
-}));
-
-function argToArray(arg: Array<string> | undefined) {
-  if (!arg) return [];
+function argToArray(arg: Array<string> = []) {
   return arg.flatMap(item => item.split(",")).filter(Boolean);
 }
 
@@ -153,110 +140,80 @@ function getOutputPath(path: string, type: string) {
 
 async function compressFile(data: Buffer, path: string, start: number | null, type: string) {
   const newPath = getOutputPath(path, type);
-  let newData: Buffer | undefined;
-  if (type === "gz" && gzipEncode) {
-    newData = await gzipEncode(data);
-  } else if (type === "br" && brotliEncode) {
-    newData = await brotliEncode(data, path);
-  } else if (type === "zst" && zstdEncode) {
-    newData = await zstdEncode(data);
-  }
+  const newData = await encoders[type](data, path);
   await mkdir(dirname(newPath), {recursive: true});
-  await writeFile(newPath, newData!);
+  await writeFile(newPath, newData);
   if (args.delete) await unlink(path);
 
   if (start) {
     const ms = Math.round(performance.now() - start);
-    const red = reductionText(data, newData!);
+    const red = reductionText(data, newData);
     console.info(`✓ compressed ${styleText("magenta", newPath)} in ${ms}ms ${red}`);
+  }
+}
+
+async function isTargetNewer(path: string, type: string) {
+  try {
+    const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.${type}`)]);
+    return statsTarget.mtime > statsSource.mtime;
+  } catch {
+    return false;
   }
 }
 
 async function compress(path: string) {
   const start = (args.silent || !args.verbose) ? null : performance.now();
 
-  let skipGzip = false;
-  let skipBrotli = false;
-  let skipZstd = false;
-
-  if (args.mtime && gzipEncode) {
-    try {
-      const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.gz`)]);
-      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) {
-        skipGzip = true;
-      }
-    } catch {}
+  const skippedTypes = new Set<string>();
+  if (args.mtime) {
+    for (const type of enabledTypes) {
+      if (await isTargetNewer(path, type)) skippedTypes.add(type);
+    }
   }
-  if (args.mtime && brotliEncode) {
-    try {
-      const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.br`)]);
-      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) {
-        skipBrotli = true;
-      }
-    } catch {}
-  }
-  if (args.mtime && zstdEncode) {
-    try {
-      const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.zst`)]);
-      if (statsSource && statsTarget && statsTarget.mtime > statsSource.mtime) {
-        skipZstd = true;
-      }
-    } catch {}
-  }
-  if (skipGzip && skipBrotli && skipZstd) return;
+  if (skippedTypes.size === allTypes.length) return;
 
   try {
     const data = await readFile(path);
-
-    if (!skipGzip && gzipEncode) await compressFile(data, path, start, "gz");
-    if (!skipBrotli && brotliEncode) await compressFile(data, path, start, "br");
-    if (!skipZstd && zstdEncode) await compressFile(data, path, start, "zst");
+    for (const type of enabledTypes) {
+      if (!skippedTypes.has(type)) await compressFile(data, path, start, type);
+    }
   } catch (err) {
     const {code, message} = err as NodeJS.ErrnoException;
     console.info(`Error on ${path}: ${code} ${message}`);
   }
 }
 
-function isIncluded(path: string, includeMatcher: ((path: string) => boolean) | undefined, excludeMatcher: ((path: string) => boolean) | undefined) {
-  if (excludeMatcher?.(path)) return false;
-  if (!includeMatcher) return true;
-  return includeMatcher(path);
-}
-
 async function main() {
   const start = args.silent ? null : performance.now();
-  const includeGlobs = new Set(argToArray(args.include));
-  const excludeGlobs = new Set([...alwaysExclude, ...argToArray(args.exclude)]);
+  const includeGlobs = Array.from(new Set(argToArray(args.include)));
+  const excludeGlobs = Array.from(new Set([...alwaysExclude, ...argToArray(args.exclude)]));
 
   const rrdirOpts: RRDirOpts = {
-    include: includeGlobs.size ? Array.from(includeGlobs) : undefined,
-    exclude: excludeGlobs.size ? Array.from(excludeGlobs) : undefined,
+    include: includeGlobs.length ? includeGlobs : undefined,
+    exclude: excludeGlobs,
     followSymlinks: args.follow,
     insensitive: !args.sensitive,
   };
 
   const picoOpts = {dot: true, flags: args.sensitive ? "i" : undefined};
-  const includeMatcher = (includeGlobs.size && picomatch(Array.from(includeGlobs), picoOpts) || undefined);
-  const excludeMatcher = (excludeGlobs.size && picomatch(Array.from(excludeGlobs), picoOpts) || undefined);
+  const includeMatcher = includeGlobs.length ? picomatch(includeGlobs, picoOpts) : undefined;
+  const excludeMatcher = picomatch(excludeGlobs, picoOpts);
 
   const files: Array<string> = [];
-  for (const file of args._) {
-    const stats = await stat(file);
-    if (stats.isDirectory()) {
+  for (const file of positionals) {
+    if ((await stat(file)).isDirectory()) {
       for await (const entry of rrdir(file, rrdirOpts)) {
         if (!entry.directory) files.push(entry.path);
       }
-    } else {
-      if (isIncluded(file, includeMatcher, excludeMatcher)) {
-        files.push(args.follow ? await realpath(file) : file);
-      }
+    } else if (!excludeMatcher(file) && (!includeMatcher || includeMatcher(file))) {
+      files.push(args.follow ? await realpath(file) : file);
     }
   }
 
   const filesText = `${files.length} file${files.length > 1 ? "s" : ""}`;
 
   if (!files.length) throw new Error(`No matching files found`);
-  if (!args.silent) console.info(`precompress ${packageVersion} compressing ${filesText}...`);
+  if (!args.silent) console.info(`precompress ${pkg.version} compressing ${filesText}...`);
 
   const requestedConcurrency = Number(args.concurrency);
   const concurrency = requestedConcurrency > 0 ? requestedConcurrency : Math.min(files.length, numCores);

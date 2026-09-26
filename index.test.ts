@@ -1,6 +1,6 @@
 import {execa} from "execa";
 import {fileURLToPath} from "node:url";
-import {writeFileSync, readFileSync, mkdirSync, statSync, mkdtempSync, rmSync} from "node:fs";
+import {writeFileSync, readFileSync, mkdirSync, mkdtempSync, rmSync} from "node:fs";
 import {join} from "node:path";
 import fastGlob from "fast-glob";
 import {tmpdir} from "node:os";
@@ -20,8 +20,7 @@ function setupTestDir() {
 }
 
 async function run(testDir: string, args: string) {
-  const argsArr = [".", ...args.split(/\s+/).map(s => s.trim()).filter(Boolean)];
-  return execa(script, argsArr, {cwd: testDir});
+  return execa(script, [".", ...args.split(/\s+/).filter(Boolean)], {cwd: testDir});
 }
 
 function makeTest(argsFn: (testDir: string) => string, expectedPaths: string[]) {
@@ -29,9 +28,7 @@ function makeTest(argsFn: (testDir: string) => string, expectedPaths: string[]) 
     const testDir = setupTestDir();
     try {
       await run(testDir, argsFn(testDir));
-      const paths = fastGlob.sync(`**`, {cwd: testDir}).sort()
-        .filter(p => !statSync(join(testDir, p)).isDirectory());
-      expect(paths).toEqual(expectedPaths);
+      expect(fastGlob.sync(`**`, {cwd: testDir}).sort()).toEqual(expectedPaths);
     } finally {
       rmSync(testDir, {recursive: true, force: true});
     }
