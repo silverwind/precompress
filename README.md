@@ -4,12 +4,10 @@
 CLI to compress files to gzip, brotli and zstd. Files are efficiently compressed in parallel. Existing output files will always be overridden.
 
 ## Usage
-```bash
-# compress all files in the "build" directory using node
-npx precompress ./build
 
-# same with bun
-bunx precompress ./build
+```sh
+pnpm add -D precompress
+pnpm exec precompress ./build
 ```
 
 ## Options
