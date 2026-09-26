@@ -153,7 +153,7 @@ async function compressFile(data: Buffer, path: string, start: number | null, ty
 
 async function isTargetNewer(path: string, type: string) {
   try {
-    const [statsSource, statsTarget] = await Promise.all([stat(path), stat(`${path}.${type}`)]);
+    const [statsSource, statsTarget] = await Promise.all([stat(path), stat(getOutputPath(path, type))]);
     return statsTarget.mtime > statsSource.mtime;
   } catch {
     return false;

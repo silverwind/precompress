@@ -23,11 +23,11 @@ async function run(testDir: string, args: string) {
   return execa(script, [".", ...args.split(/\s+/).filter(Boolean)], {cwd: testDir});
 }
 
-function makeTest(argsFn: (testDir: string) => string, expectedPaths: string[]) {
+function makeTest(argsFn: (testDir: string) => string | string[], expectedPaths: string[]) {
   return async () => {
     const testDir = setupTestDir();
     try {
-      await run(testDir, argsFn(testDir));
+      for (const args of [argsFn(testDir)].flat()) await run(testDir, args);
       expect(fastGlob.sync(`**`, {cwd: testDir}).sort()).toEqual(expectedPaths);
     } finally {
       rmSync(testDir, {recursive: true, force: true});
@@ -170,8 +170,20 @@ test("exclude 4", makeTest(() => "-e ''", [
   "src/inner.js.gz",
   "src/inner.js.zst",
 ]));
-test("mtime", makeTest(() => "-m", [
+test("mtime", makeTest(testDir => ["-m", `-m -o ${testDir}/dist`], [
   "already.gz",
+  "dist/outer.html.br",
+  "dist/outer.html.gz",
+  "dist/outer.html.zst",
+  "dist/outer.png.br",
+  "dist/outer.png.gz",
+  "dist/outer.png.zst",
+  "dist/src/inner.css.br",
+  "dist/src/inner.css.gz",
+  "dist/src/inner.css.zst",
+  "dist/src/inner.js.br",
+  "dist/src/inner.js.gz",
+  "dist/src/inner.js.zst",
   "outer.html",
   "outer.html.br",
   "outer.html.gz",
