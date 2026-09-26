@@ -143,7 +143,6 @@ async function compressFile(data: Buffer, path: string, start: number | null, ty
   const newData = await encoders[type](data, path);
   await mkdir(dirname(newPath), {recursive: true});
   await writeFile(newPath, newData);
-  if (args.delete) await unlink(path);
 
   if (start) {
     const ms = Math.round(performance.now() - start);
@@ -174,9 +173,9 @@ async function compress(path: string) {
 
   try {
     const data = await readFile(path);
-    for (const type of enabledTypes) {
-      if (!skippedTypes.has(type)) await compressFile(data, path, start, type);
-    }
+    const pendingTypes = enabledTypes.filter(type => !skippedTypes.has(type));
+    for (const type of pendingTypes) await compressFile(data, path, start, type);
+    if (args.delete && pendingTypes.length) await unlink(path);
   } catch (err) {
     const {code, message} = err as NodeJS.ErrnoException;
     console.info(`Error on ${path}: ${code} ${message}`);

@@ -72,12 +72,16 @@ test("delete", makeTest(() => "-d", [
   "already.gz",
   "outer.html.br",
   "outer.html.gz",
+  "outer.html.zst",
   "outer.png.br",
   "outer.png.gz",
+  "outer.png.zst",
   "src/inner.css.br",
   "src/inner.css.gz",
+  "src/inner.css.zst",
   "src/inner.js.br",
   "src/inner.js.gz",
+  "src/inner.js.zst",
 ]));
 test("include 1", makeTest(() => "-i **.html,**.foo -i **.css", [
   "already.gz",
