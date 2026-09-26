@@ -195,7 +195,7 @@ async function main() {
     insensitive: !args.sensitive,
   };
 
-  const picoOpts = {dot: true, flags: args.sensitive ? "i" : undefined};
+  const picoOpts = {dot: true, nocase: !args.sensitive};
   const includeMatcher = includeGlobs.length ? picomatch(includeGlobs, picoOpts) : undefined;
   const excludeMatcher = picomatch(excludeGlobs, picoOpts);
 

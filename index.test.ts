@@ -248,6 +248,8 @@ test("no matching files 2", async () => {
   const testDir = setupTestDir();
   try {
     await expect(run(testDir, "-i HTML -S")).rejects.toThrow();
+    await expect(execa(script, ["-S", "-i", "**.HTML", "outer.html"], {cwd: testDir})).rejects.toThrow();
+    await expect(execa(script, ["-e", "**.HTML", "outer.html"], {cwd: testDir})).rejects.toThrow();
   } finally {
     rmSync(testDir, {recursive: true, force: true});
   }
