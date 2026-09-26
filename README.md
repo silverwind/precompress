@@ -6,8 +6,7 @@ CLI to compress files to gzip, brotli and zstd. Files are efficiently compressed
 ## Usage
 
 ```sh
-pnpm add -D precompress
-pnpm exec precompress ./build
+pnpm dlx precompress ./build
 ```
 
 ## Options
