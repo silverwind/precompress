@@ -3,7 +3,6 @@
   "compilerOptions": {
     "types": [
       "node",
-      "jest-extended",
       "vite/client",
       "vitest/globals",
     ],

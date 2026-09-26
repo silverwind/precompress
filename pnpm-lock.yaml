@@ -190,9 +190,6 @@ importers:
       isbinaryfile:
         specifier: 6.0.0
         version: 6.0.0
-      jest-extended:
-        specifier: 7.0.0
-        version: 7.0.0(typescript@6.0.3)
       p-map:
         specifier: 7.0.8
         version: 7.0.8
