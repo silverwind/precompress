@@ -6,7 +6,7 @@ import {availableParallelism} from "node:os";
 import {argv, exit, versions, env} from "node:process";
 import {parseArgs, promisify, styleText, type ParseArgsConfig} from "node:util";
 import {stat, readFile, writeFile, realpath, mkdir, unlink} from "node:fs/promises";
-import {extname, relative, join, dirname} from "node:path";
+import {extname, relative, join, dirname, normalize, resolve} from "node:path";
 import {isBinaryFileSync} from "isbinaryfile";
 import picomatch from "picomatch";
 import pkg from "./package.json" with {type: "json"};
@@ -179,6 +179,10 @@ async function compress(path: string) {
   }
 }
 
+function matchesPath(matcher: picomatch.Matcher, path: string) {
+  return matcher(normalize(path)) || matcher(resolve(path));
+}
+
 async function main() {
   const start = args.silent ? null : performance.now();
   const includeGlobs = Array.from(new Set(argToArray(args.include)));
@@ -201,7 +205,7 @@ async function main() {
       for await (const entry of rrdir(file, rrdirOpts)) {
         if (!entry.directory) files.push(entry.path);
       }
-    } else if (!excludeMatcher(file) && (!includeMatcher || includeMatcher(file))) {
+    } else if (!matchesPath(excludeMatcher, file) && (!includeMatcher || matchesPath(includeMatcher, file))) {
       files.push(args.follow ? await realpath(file) : file);
     }
   }

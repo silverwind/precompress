@@ -279,6 +279,8 @@ test("no matching files 2", async () => {
     await expect(run(testDir, "-i HTML -S")).rejects.toThrow();
     await expect(execa(script, ["-S", "-i", "**.HTML", "outer.html"], {cwd: testDir})).rejects.toThrow();
     await expect(execa(script, ["-e", "**.HTML", "outer.html"], {cwd: testDir})).rejects.toThrow();
+    await expect(execa(script, ["-e", "**.html", "./outer.html"], {cwd: testDir})).rejects.toThrow();
+    await expect(execa(script, ["../already.gz"], {cwd: join(testDir, "src")})).rejects.toThrow();
   } finally {
     rmSync(testDir, {recursive: true, force: true});
   }
