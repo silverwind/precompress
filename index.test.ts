@@ -1,6 +1,7 @@
 import {execa} from "execa";
 import {fileURLToPath} from "node:url";
-import {writeFileSync, readFileSync, mkdirSync, mkdtempSync, rmSync} from "node:fs";
+import {writeFileSync, readFileSync, mkdirSync, mkdtempSync, rmSync, chmodSync} from "node:fs";
+import {platform} from "node:process";
 import {join} from "node:path";
 import fastGlob from "fast-glob";
 import {tmpdir} from "node:os";
@@ -203,6 +204,16 @@ test("mtime", makeTest(testDir => ["-m", `-m -o ${testDir}/dist`], [
   "src/inner.js.gz",
   "src/inner.js.zst",
 ]));
+test.skipIf(platform === "win32")("mtime does not read sources whose selected outputs are newer", async () => {
+  const testDir = setupTestDir();
+  try {
+    await run(testDir, "-t gz");
+    chmodSync(join(testDir, "outer.html"), 0);
+    expect((await run(testDir, "-m -t gz")).stdout).not.toContain("EACCES");
+  } finally {
+    rmSync(testDir, {recursive: true, force: true});
+  }
+});
 test("outdir", makeTest(testDir => `-o ${testDir}/dist --types gz,br --types zst`, [
   "already.gz",
   "dist/outer.html.br",

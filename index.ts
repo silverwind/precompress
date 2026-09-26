@@ -163,19 +163,16 @@ async function isTargetNewer(path: string, type: string) {
 async function compress(path: string) {
   const start = (args.silent || !args.verbose) ? null : performance.now();
 
-  const skippedTypes = new Set<string>();
-  if (args.mtime) {
-    for (const type of enabledTypes) {
-      if (await isTargetNewer(path, type)) skippedTypes.add(type);
-    }
+  const pendingTypes: Array<string> = [];
+  for (const type of enabledTypes) {
+    if (!args.mtime || !(await isTargetNewer(path, type))) pendingTypes.push(type);
   }
-  if (skippedTypes.size === allTypes.length) return;
+  if (!pendingTypes.length) return;
 
   try {
     const data = await readFile(path);
-    const pendingTypes = enabledTypes.filter(type => !skippedTypes.has(type));
     for (const type of pendingTypes) await compressFile(data, path, start, type);
-    if (args.delete && pendingTypes.length) await unlink(path);
+    if (args.delete) await unlink(path);
   } catch (err) {
     const {code, message} = err as NodeJS.ErrnoException;
     console.info(`Error on ${path}: ${code} ${message}`);
