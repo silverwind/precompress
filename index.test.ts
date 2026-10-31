@@ -60,7 +60,7 @@ test.each([
   ]],
   ["outdir,extensionless", [". -o $DIR/dist -t gz -E"], [...sources, ...outputs(sources, "dist/", [""])]],
 ] as Array<[string, Array<string>, Array<string>]>)("%s", (_name, runs, expected) => withTestDir(async testDir => {
-  for (const args of runs) await run(testDir, args.replace("$DIR", testDir));
+  for (const args of runs) await run(testDir, args.replace("$DIR", () => testDir));
   expect(fastGlob.sync("**", {cwd: testDir}).sort()).toEqual(["already.gz", ...expected].sort());
 }));
 
