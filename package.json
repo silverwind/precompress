@@ -14,30 +14,30 @@
   "files": [
     "dist"
   ],
-  "packageManager": "pnpm@12.6.0",
+  "packageManager": "pnpm@12.16.1",
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
-    "@types/node": "26.6.3",
+    "@types/node": "26.6.6",
     "@types/picomatch": "4.0.3",
-    "eslint": "10.11.0",
+    "eslint": "10.14.0",
     "eslint-config-silverwind": "155.2.0",
-    "execa": "10.0.1",
+    "execa": "10.2.1",
     "fast-glob": "3.3.3",
     "isbinaryfile": "6.0.0",
-    "p-map": "7.0.8",
+    "p-map": "7.1.1",
     "picomatch": "4.0.7",
-    "rrdir": "14.2.18",
+    "rrdir": "14.2.19",
     "tsdown": "0.23.4",
     "tsdown-config-silverwind": "4.2.0",
     "typescript": "7.0.2",
-    "typescript-config-silverwind": "21.0.1",
-    "updates": "19.0.2",
+    "typescript-config-silverwind": "21.0.2",
+    "updates": "20.0.0",
     "updates-config-silverwind": "4.1.0",
-    "versions": "15.5.1",
-    "vite": "8.3.1",
-    "vitest": "5.0.2",
-    "vitest-config-silverwind": "12.0.5"
+    "versions": "15.5.2",
+    "vite": "8.3.5",
+    "vitest": "5.0.5",
+    "vitest-config-silverwind": "12.0.6"
   }
 }
